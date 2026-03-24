@@ -6,11 +6,16 @@
   
   --color-gold: #c5a059;
   --color-deep-red: #210101;
+  --color-deep-orange: #2b1401;
+  --color-deep-purple: #1a0121;
+  --color-deep-blue: #010a21;
+  --color-deep-green: #01210a;
+  --color-deep-yellow: #2b2101;
 }
 
 @layer base {
   body {
-    @apply bg-deep-red text-white font-sans antialiased;
+    @apply bg-deep-purple text-white font-sans antialiased;
   }
 }
 

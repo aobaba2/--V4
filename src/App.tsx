@@ -16,7 +16,18 @@ import {
   Clock,
   MapPin,
   Phone,
-  PlayCircle
+  PlayCircle,
+  Star,
+  Flame,
+  Soup,
+  Wind,
+  Beer,
+  Mountain,
+  FlameKindling,
+  Zap,
+  IceCream,
+  Utensils,
+  GlassWater
 } from 'lucide-react';
 import { CATEGORIES, DISHES, Dish, Category } from './types';
 
@@ -48,7 +59,7 @@ const VideoModal = ({ videoUrl, onClose }: { videoUrl: string; onClose: () => vo
   );
 };
 
-const DishDetailModal = ({ dish, onAdd, onPlayVideo, onClose }: { dish: Dish; onAdd: (d: Dish) => void; onPlayVideo: (url: string) => void; onClose: () => void }) => {
+const DishDetailModal = ({ dish, onAdd, onPlayVideo, onClose, bgColor }: { dish: Dish; onAdd: (d: Dish) => void; onPlayVideo: (url: string) => void; onClose: () => void; bgColor: string }) => {
   return (
     <motion.div 
       className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 md:p-12"
@@ -58,7 +69,7 @@ const DishDetailModal = ({ dish, onAdd, onPlayVideo, onClose }: { dish: Dish; on
       onClick={onClose}
     >
       <motion.div 
-        className="relative w-full max-w-4xl bg-deep-red border border-gold/20 rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row"
+        className={`relative w-full max-w-4xl ${bgColor} border border-gold/20 rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row transition-colors duration-1000`}
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -130,7 +141,7 @@ const DishDetailModal = ({ dish, onAdd, onPlayVideo, onClose }: { dish: Dish; on
   );
 };
 
-const CategoryCover = ({ category }: { category: Category }) => {
+const CategoryCover = ({ category, bgColor }: { category: Category; bgColor: string }) => {
   return (
     <motion.div 
       className="relative w-full h-[60vh] md:h-[80vh] flex flex-col items-center justify-center overflow-hidden"
@@ -157,7 +168,7 @@ const CategoryCover = ({ category }: { category: Category }) => {
           className="w-full h-full object-cover"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-deep-red/60 via-transparent to-deep-red/80" />
+        <div className={`absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80`} />
       </motion.div>
 
       {/* Content */}
@@ -189,9 +200,11 @@ interface DishCardProps {
   onAdd: (d: Dish) => void;
   onPlayVideo: (url: string | null) => void;
   onShowDetail: (d: Dish) => void;
+  bgColor: string;
 }
 
-const DishCardHero = ({ dish, onAdd, onPlayVideo, onShowDetail }: DishCardProps) => {
+const DishCardHero = ({ dish, onAdd, onPlayVideo, onShowDetail, bgColor }: DishCardProps) => {
+  const bgGradientColor = bgColor.replace('bg-', '');
   return (
     <div 
       onClick={() => onShowDetail(dish)}
@@ -203,7 +216,7 @@ const DishCardHero = ({ dish, onAdd, onPlayVideo, onShowDetail }: DishCardProps)
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-110"
         referrerPolicy="no-referrer"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-deep-red via-deep-red/20 to-transparent" />
+      <div className={`absolute inset-0 bg-gradient-to-t from-${bgGradientColor} via-${bgGradientColor}/20 to-transparent transition-colors duration-1000`} />
       
       <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
         <div className="max-w-2xl">
@@ -249,7 +262,8 @@ const DishCardHero = ({ dish, onAdd, onPlayVideo, onShowDetail }: DishCardProps)
   );
 };
 
-const DishCardFeatured = ({ dish, onAdd, onPlayVideo, onShowDetail }: DishCardProps) => {
+const DishCardFeatured = ({ dish, onAdd, onPlayVideo, onShowDetail, bgColor }: DishCardProps) => {
+  const bgClass = bgColor.replace('bg-', '');
   return (
     <div 
       onClick={() => onShowDetail(dish)}
@@ -281,7 +295,7 @@ const DishCardFeatured = ({ dish, onAdd, onPlayVideo, onShowDetail }: DishCardPr
               e.stopPropagation();
               onAdd(dish);
             }}
-            className="w-10 h-10 rounded-full bg-deep-red/80 text-gold hover:bg-gold hover:text-black transition-all flex items-center justify-center backdrop-blur-md border border-gold/20"
+            className={`w-10 h-10 rounded-full bg-${bgClass}/80 text-gold hover:bg-gold hover:text-black transition-all flex items-center justify-center backdrop-blur-md border border-gold/20`}
           >
             <Plus size={20} />
           </button>
@@ -298,7 +312,7 @@ const DishCardFeatured = ({ dish, onAdd, onPlayVideo, onShowDetail }: DishCardPr
   );
 };
 
-const DishCardSmall = ({ dish, onAdd, onPlayVideo, onShowDetail }: DishCardProps) => {
+const DishCardSmall = ({ dish, onAdd, onPlayVideo, onShowDetail, bgColor }: DishCardProps) => {
   return (
     <div 
       onClick={() => onShowDetail(dish)}
@@ -345,6 +359,20 @@ const DishCardSmall = ({ dish, onAdd, onPlayVideo, onShowDetail }: DishCardProps
 
 // --- Main App ---
 
+const CATEGORY_ICONS: Record<string, any> = {
+  'Star': Star,
+  'Flame': Flame,
+  'Soup': Soup,
+  'Wind': Wind,
+  'Beer': Beer,
+  'Mountain': Mountain,
+  'FlameKindling': FlameKindling,
+  'Zap': Zap,
+  'IceCream': IceCream,
+  'Utensils': Utensils,
+  'GlassWater': GlassWater
+};
+
 export default function App() {
   const [activeCategory, setActiveCategory] = useState(CATEGORIES[0].id);
   const [cart, setCart] = useState<{ dish: Dish; count: number }[]>([]);
@@ -356,6 +384,18 @@ export default function App() {
   const [isOrdering, setIsOrdering] = useState(false);
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const CATEGORY_BG_COLORS: Record<string, string> = {
+    'all': 'bg-deep-purple',
+    'northeast': 'bg-deep-red',
+    'sichuan': 'bg-deep-yellow',
+    'bar-snacks': 'bg-deep-blue',
+    'appetizers': 'bg-deep-green',
+    'staple': 'bg-deep-purple',
+    'drinks': 'bg-deep-blue',
+  };
+
+  const currentBgColor = CATEGORY_BG_COLORS[activeCategory] || 'bg-deep-purple';
 
   const addToCart = (dish: Dish) => {
     setCart(prev => {
@@ -430,10 +470,10 @@ export default function App() {
   const regularDishes = filteredDishes.filter(d => !d.isHero && !d.isFeatured);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-deep-red selection:bg-gold/30">
+    <div className={`flex h-screen overflow-hidden ${currentBgColor} transition-colors duration-1000 selection:bg-gold/30`}>
       
       {/* Sidebar Navigation - Tablet/Desktop */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-24 md:w-32 bg-deep-red border-r border-white/5 flex flex-col items-center py-12 transition-transform duration-500 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-24 md:w-32 ${currentBgColor} border-r border-white/5 flex flex-col items-center py-12 transition-colors duration-1000 transition-transform duration-500 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="mb-16">
           <motion.div 
             className="w-16 h-16 border-2 border-gold rounded-full flex items-center justify-center text-gold font-serif text-2xl shadow-[0_0_20px_rgba(197,160,89,0.3)]"
@@ -444,43 +484,48 @@ export default function App() {
           </motion.div>
         </div>
         
-        <nav className="flex-1 flex flex-col gap-8 w-full px-4">
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat.id}
-              onClick={() => {
-                setActiveCategory(cat.id);
-                setIsSidebarOpen(false);
-                scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className={`relative group flex flex-col items-center justify-center w-full aspect-square rounded-xl border transition-all duration-500 ${
-                activeCategory === cat.id 
-                ? 'bg-gold/10 border-gold shadow-[0_0_15px_rgba(197,160,89,0.2)]' 
-                : 'bg-white/[0.02] border-white/10 hover:border-gold/50 hover:bg-white/[0.05]'
-              }`}
-            >
-              {/* Decorative dot */}
-              <div className={`absolute top-2 right-2 w-1 h-1 rounded-full transition-all duration-500 ${activeCategory === cat.id ? 'bg-gold scale-150' : 'bg-white/20'}`} />
-              
-              {/* Category Icon/Character */}
-              <span className={`font-serif text-lg mb-1 transition-colors duration-500 ${activeCategory === cat.id ? 'text-gold' : 'text-white/40 group-hover:text-gold/70'}`}>
-                {cat.name.charAt(0)}
-              </span>
-              
-              {/* Category Name (Vertical but button-style) */}
-              <span className={`text-[10px] tracking-[0.2em] transition-colors duration-500 ${activeCategory === cat.id ? 'text-gold' : 'text-white/30 group-hover:text-white/60'}`}>
-                {cat.name}
-              </span>
-
-              {/* Active Indicator Line */}
-              {activeCategory === cat.id && (
+        <nav className="flex-1 flex flex-col gap-10 w-full px-4 py-4">
+          {CATEGORIES.map(cat => {
+            const IconComponent = CATEGORY_ICONS[cat.icon];
+            return (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  setActiveCategory(cat.id);
+                  setIsSidebarOpen(false);
+                  scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="group flex flex-col items-center gap-2 w-full"
+              >
                 <motion.div 
-                  layoutId="activeNav"
-                  className="absolute -left-4 w-1 h-8 bg-gold rounded-r-full shadow-[0_0_10px_rgba(197,160,89,0.8)]"
-                />
-              )}
-            </button>
-          ))}
+                  className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 ${cat.iconBg} ${
+                    activeCategory === cat.id 
+                    ? 'scale-110 ring-4 ring-gold/30' 
+                    : 'opacity-80 group-hover:opacity-100 group-hover:scale-105'
+                  }`}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {IconComponent && <IconComponent size={28} className="text-white" strokeWidth={2.5} />}
+                  
+                  {/* Active Indicator Dot (Badge style) */}
+                  {activeCategory === cat.id && (
+                    <motion.div 
+                      layoutId="activeNavBadge"
+                      className="absolute -top-1 -right-1 w-4 h-4 bg-gold rounded-full border-2 border-black"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                    />
+                  )}
+                </motion.div>
+                
+                <span className={`text-[11px] font-medium tracking-wider transition-colors duration-300 ${
+                  activeCategory === cat.id ? 'text-gold' : 'text-white/40 group-hover:text-white/70'
+                }`}>
+                  {cat.name}
+                </span>
+              </button>
+            );
+          })}
         </nav>
         
         <div className="mt-auto flex flex-col gap-6 opacity-20">
@@ -492,7 +537,7 @@ export default function App() {
       {/* Main Content Area */}
       <main 
         ref={scrollContainerRef}
-        className="flex-1 ml-0 md:ml-32 overflow-y-auto scroll-smooth bg-deep-red"
+        className={`flex-1 ml-0 md:ml-32 overflow-y-auto scroll-smooth ${currentBgColor} transition-colors duration-1000`}
       >
         {/* Persistent Header */}
         <header className="sticky top-0 left-0 right-0 z-40 h-24 px-6 md:px-12 flex items-center justify-between glass-panel border-b border-gold/10">
@@ -522,7 +567,7 @@ export default function App() {
             <button onClick={() => setIsCartOpen(true)} className="relative p-3 bg-gold/5 hover:bg-gold/10 border border-gold/20 rounded-full transition-all group">
               <ShoppingCart className="text-gold group-hover:scale-110 transition-transform" size={22} />
               {totalCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-6 h-6 bg-gold text-black text-[11px] font-bold rounded-full flex items-center justify-center border-2 border-deep-red shadow-lg">
+                <span className={`absolute -top-1 -right-1 w-6 h-6 bg-gold text-black text-[11px] font-bold rounded-full flex items-center justify-center border-2 border-${currentBgColor.replace('bg-', '')} shadow-lg transition-colors duration-1000`}>
                   {totalCount}
                 </span>
               )}
@@ -533,6 +578,7 @@ export default function App() {
         {/* Category Cover Section */}
         <CategoryCover 
           category={CATEGORIES.find(c => c.id === activeCategory)!} 
+          bgColor={currentBgColor}
         />
 
         {/* Dishes List Section */}
@@ -548,7 +594,7 @@ export default function App() {
                 </div>
                 <div className="space-y-16">
                   {DISHES.filter(d => d.isHero).map(dish => (
-                    <DishCardHero key={dish.id} dish={dish} onAdd={addToCart} onPlayVideo={(url) => setActiveVideo(url)} onShowDetail={setSelectedDish} />
+                    <DishCardHero key={dish.id} dish={dish} onAdd={addToCart} onPlayVideo={(url) => setActiveVideo(url)} onShowDetail={setSelectedDish} bgColor={currentBgColor} />
                   ))}
                 </div>
               </section>
@@ -561,7 +607,7 @@ export default function App() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
                   {DISHES.filter(d => d.isFeatured).map(dish => (
-                    <DishCardFeatured key={dish.id} dish={dish} onAdd={addToCart} onPlayVideo={(url) => setActiveVideo(url)} onShowDetail={setSelectedDish} />
+                    <DishCardFeatured key={dish.id} dish={dish} onAdd={addToCart} onPlayVideo={(url) => setActiveVideo(url)} onShowDetail={setSelectedDish} bgColor={currentBgColor} />
                   ))}
                 </div>
               </section>
@@ -574,7 +620,7 @@ export default function App() {
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {DISHES.filter(d => !d.isHero && !d.isFeatured).map(dish => (
-                    <DishCardSmall key={dish.id} dish={dish} onAdd={addToCart} onPlayVideo={(url) => setActiveVideo(url)} onShowDetail={setSelectedDish} />
+                    <DishCardSmall key={dish.id} dish={dish} onAdd={addToCart} onPlayVideo={(url) => setActiveVideo(url)} onShowDetail={setSelectedDish} bgColor={currentBgColor} />
                   ))}
                 </div>
               </section>
@@ -593,7 +639,7 @@ export default function App() {
               {/* Category Dishes */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
                 {filteredDishes.map(dish => (
-                  <DishCardFeatured key={dish.id} dish={dish} onAdd={addToCart} onPlayVideo={(url) => setActiveVideo(url)} onShowDetail={setSelectedDish} />
+                  <DishCardFeatured key={dish.id} dish={dish} onAdd={addToCart} onPlayVideo={(url) => setActiveVideo(url)} onShowDetail={setSelectedDish} bgColor={currentBgColor} />
                 ))}
               </div>
             </>
@@ -625,6 +671,7 @@ export default function App() {
             onAdd={addToCart}
             onPlayVideo={setActiveVideo}
             onClose={() => setSelectedDish(null)}
+            bgColor={currentBgColor}
           />
         )}
       </AnimatePresence>
@@ -641,7 +688,7 @@ export default function App() {
               onClick={() => setIsCartOpen(false)}
             />
             <motion.div 
-              className="fixed inset-y-0 right-0 z-[70] w-full max-w-md bg-deep-red border-l border-white/10 flex flex-col"
+              className={`fixed inset-y-0 right-0 z-[70] w-full max-w-md ${currentBgColor} border-l border-white/10 flex flex-col transition-colors duration-1000`}
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
@@ -731,7 +778,7 @@ export default function App() {
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div 
-            className="fixed inset-0 z-[100] bg-deep-red/95 md:hidden flex flex-col items-center justify-center gap-12"
+            className={`fixed inset-0 z-[100] ${currentBgColor} transition-colors duration-1000 bg-opacity-95 md:hidden flex flex-col items-center justify-center gap-12`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -742,19 +789,34 @@ export default function App() {
             >
               <X size={32} />
             </button>
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  setActiveCategory(cat.id);
-                  setIsSidebarOpen(false);
-                  scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className={`text-3xl font-serif tracking-widest ${activeCategory === cat.id ? 'text-gold' : 'text-white/40'}`}
-              >
-                {cat.name}
-              </button>
-            ))}
+            <div className="grid grid-cols-2 gap-x-12 gap-y-16">
+              {CATEGORIES.map(cat => {
+                const IconComponent = CATEGORY_ICONS[cat.icon];
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => {
+                      setActiveCategory(cat.id);
+                      setIsSidebarOpen(false);
+                      scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="flex flex-col items-center gap-3"
+                  >
+                    <motion.div 
+                      className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl ${cat.iconBg} ${
+                        activeCategory === cat.id ? 'ring-4 ring-gold/40' : ''
+                      }`}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      {IconComponent && <IconComponent size={40} className="text-white" strokeWidth={2.5} />}
+                    </motion.div>
+                    <span className={`text-sm font-medium tracking-widest ${activeCategory === cat.id ? 'text-gold' : 'text-white/60'}`}>
+                      {cat.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
