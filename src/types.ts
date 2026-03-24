@@ -1,5 +1,36 @@
 import { LucideIcon } from 'lucide-react';
 
+export interface Settings {
+  siteName: string;
+  siteDescription: string;
+  cartEnabled: boolean;
+  themeTemplate: string;
+  fontFamily: string;
+  primaryColor: string;
+}
+
+export interface UserProfile {
+  uid: string;
+  email: string | null;
+  role: 'admin' | 'user';
+}
+
+export interface OrderItem {
+  dishId: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+export interface Order {
+  id: string;
+  tableId: string;
+  items: OrderItem[];
+  total: number;
+  status: 'pending' | 'preparing' | 'served' | 'completed';
+  createdAt: any;
+}
+
 export interface Dish {
   id: string;
   name: string;
@@ -8,19 +39,20 @@ export interface Dish {
   videoUrl?: string;
   description?: string;
   category: string;
-  isHero?: boolean; // Large display like in the images
-  isFeatured?: boolean; // Medium display
+  isHero?: boolean;
+  isFeatured?: boolean;
 }
 
 export interface Category {
   id: string;
   name: string;
-  enName: string;
-  coverImage: string;
+  enName?: string;
+  coverImage?: string;
   coverVideo?: string;
   description?: string;
-  icon: string; // Lucide icon name or character
-  iconBg: string; // Tailwind color class for icon background
+  icon: string;
+  iconBg?: string;
+  order?: number;
 }
 
 export const CATEGORIES: Category[] = [

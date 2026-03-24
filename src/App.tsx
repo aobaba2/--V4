@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { 
   ChevronRight, 
@@ -27,9 +27,24 @@ import {
   Zap,
   IceCream,
   Utensils,
-  GlassWater
+  GlassWater,
+  LayoutDashboard,
+  User as UserIcon,
+  ChefHat
 } from 'lucide-react';
-import { CATEGORIES, DISHES, Dish, Category } from './types';
+import { 
+  collection, 
+  onSnapshot, 
+  doc, 
+  addDoc, 
+  serverTimestamp, 
+  query, 
+  orderBy 
+} from 'firebase/firestore';
+import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
+import { db, auth } from './firebase';
+import { CATEGORIES as INITIAL_CATEGORIES, DISHES as INITIAL_DISHES, Dish, Category, Settings, UserProfile } from './types';
+import AdminDashboard from './components/AdminDashboard';
 
 // --- Components ---
 
@@ -374,7 +389,19 @@ const CATEGORY_ICONS: Record<string, any> = {
 };
 
 export default function App() {
-  const [activeCategory, setActiveCategory] = useState(CATEGORIES[0].id);
+  const [isAdminView, setIsAdminView] = useState(false);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [settings, setSettings] = useState<Settings>({
+    siteName: '巫山烤鱼',
+    siteDescription: '地道风味，匠心烤制',
+    cartEnabled: true,
+    themeTemplate: 'default',
+    fontFamily: 'sans',
+    primaryColor: '#FF4B2B'
+  });
+  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
+  const [dishes, setDishes] = useState<Dish[]>(INITIAL_DISHES);
+  const [activeCategory, setActiveCategory] = useState('all');
   const [cart, setCart] = useState<{ dish: Dish; count: number }[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -384,6 +411,89 @@ export default function App() {
   const [isOrdering, setIsOrdering] = useState(false);
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Auth & Real-time Data
+  useEffect(() => {
+    const unsubAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          role: firebaseUser.email === 'yujianfei2016@gmail.com' ? 'admin' : 'user'
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    const unsubSettings = onSnapshot(doc(db, 'settings', 'global'), (doc) => {
+      if (doc.exists()) setSettings(doc.data() as Settings);
+    });
+
+    const unsubCategories = onSnapshot(query(collection(db, 'categories'), orderBy('order', 'asc')), (snapshot) => {
+      if (!snapshot.empty) {
+        setCategories(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Category)));
+      }
+    });
+
+    const unsubDishes = onSnapshot(collection(db, 'dishes'), (snapshot) => {
+      if (!snapshot.empty) {
+        setDishes(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Dish)));
+      }
+    });
+
+    return () => {
+      unsubAuth();
+      unsubSettings();
+      unsubCategories();
+      unsubDishes();
+    };
+  }, []);
+
+  const handleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setIsAdminView(false);
+  };
+
+  const confirmOrder = async () => {
+    if (!tableNumber) {
+      alert("请选择或输入桌号");
+      return;
+    }
+    if (cart.length === 0) return;
+
+    setIsOrdering(true);
+    try {
+      const orderData = {
+        tableId: tableNumber,
+        items: cart.map(item => ({
+          dishId: item.dish.id,
+          name: item.dish.name,
+          price: item.dish.price,
+          quantity: item.count
+        })),
+        total: totalAmount,
+        status: 'pending',
+        createdAt: serverTimestamp()
+      };
+
+      await addDoc(collection(db, 'orders'), orderData);
+      alert("下单成功！请稍候，美味即将上桌。");
+      setCart([]);
+      setIsCartOpen(false);
+      setTableNumber("");
+    } catch (error) {
+      console.error("Order failed:", error);
+      alert("下单失败，请重试。");
+    } finally {
+      setIsOrdering(false);
+    }
+  };
 
   const CATEGORY_BG_COLORS: Record<string, string> = {
     'all': 'bg-deep-purple',
@@ -421,56 +531,25 @@ export default function App() {
     });
   };
 
-  const confirmOrder = async () => {
-    if (!tableNumber) {
-      alert("请选择或输入桌号");
-      return;
-    }
-    if (cart.length === 0) return;
-
-    setIsOrdering(true);
-    try {
-      const response = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tableNumber,
-          items: cart.map(item => ({
-            dishId: item.dish.id,
-            name: item.dish.name,
-            count: item.count,
-            price: item.dish.price
-          })),
-          totalAmount
-        })
-      });
-
-      if (response.ok) {
-        alert("下单成功！请稍候，美味即将上桌。");
-        setCart([]);
-        setIsCartOpen(false);
-        setTableNumber("");
-      } else {
-        alert("下单失败，请联系服务员。");
-      }
-    } catch (error) {
-      console.error("Order failed:", error);
-      alert("网络错误，请重试。");
-    } finally {
-      setIsOrdering(false);
-    }
-  };
-
   const totalAmount = cart.reduce((sum, item) => sum + item.dish.price * item.count, 0);
   const totalCount = cart.reduce((sum, item) => sum + item.count, 0);
 
-  const filteredDishes = DISHES.filter(d => d.category === activeCategory);
+  const filteredDishes = dishes.filter(d => d.category === activeCategory);
   const heroDish = filteredDishes.find(d => d.isHero);
   const featuredDishes = filteredDishes.filter(d => d.isFeatured);
   const regularDishes = filteredDishes.filter(d => !d.isHero && !d.isFeatured);
 
+  if (isAdminView && user?.role === 'admin') {
+    return <AdminDashboard onLogout={handleLogout} />;
+  }
+
   return (
-    <div className={`flex h-screen overflow-hidden ${currentBgColor} transition-colors duration-1000 selection:bg-gold/30`}>
+    <div className={`flex h-screen overflow-hidden ${currentBgColor} transition-colors duration-1000 selection:bg-gold/30 font-${settings.fontFamily}`}>
+      <style>{`
+        :root {
+          --primary-color: ${settings.primaryColor};
+        }
+      `}</style>
       
       {/* Sidebar Navigation - Tablet/Desktop */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-24 md:w-32 ${currentBgColor} border-r border-white/5 flex flex-col items-center py-12 transition-colors duration-1000 transition-transform duration-500 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
@@ -485,7 +564,7 @@ export default function App() {
         </div>
         
         <nav className="flex-1 flex flex-col gap-10 w-full px-4 py-4">
-          {CATEGORIES.map(cat => {
+          {categories.map(cat => {
             const IconComponent = CATEGORY_ICONS[cat.icon];
             return (
               <button
@@ -498,7 +577,7 @@ export default function App() {
                 className="group flex flex-col items-center gap-2 w-full"
               >
                 <motion.div 
-                  className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 ${cat.iconBg} ${
+                  className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 ${cat.iconBg || 'bg-orange-500'} ${
                     activeCategory === cat.id 
                     ? 'scale-110 ring-4 ring-gold/30' 
                     : 'opacity-80 group-hover:opacity-100 group-hover:scale-105'
@@ -550,34 +629,59 @@ export default function App() {
                 巫
               </div>
               <div className="flex flex-col">
-                <h1 className="font-serif text-2xl md:text-3xl tracking-[0.3em] text-gold uppercase drop-shadow-sm">巫山烤全鱼</h1>
+                <h1 className="font-serif text-2xl md:text-3xl tracking-[0.3em] text-gold uppercase drop-shadow-sm">{settings.siteName}</h1>
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-[1px] bg-gold/30" />
-                  <span className="text-[9px] tracking-[0.5em] text-white/50 uppercase font-medium">Wushan Roasted Fish</span>
+                  <span className="text-[9px] tracking-[0.5em] text-white/50 uppercase font-medium">{settings.siteDescription}</span>
                 </div>
               </div>
             </div>
           </div>
           
           <div className="flex items-center gap-8">
+            {user?.role === 'admin' && (
+              <button 
+                onClick={() => setIsAdminView(true)}
+                className="hidden md:flex items-center gap-2 text-white/40 hover:text-gold transition-all"
+              >
+                <LayoutDashboard size={18} />
+                <span className="text-xs tracking-[0.2em] font-light">管理后台</span>
+              </button>
+            )}
+            {!user ? (
+              <button 
+                onClick={handleLogin}
+                className="hidden md:flex items-center gap-2 text-white/40 hover:text-gold transition-all"
+              >
+                <UserIcon size={18} />
+                <span className="text-xs tracking-[0.2em] font-light">登录</span>
+              </button>
+            ) : (
+              <div className="hidden md:flex items-center gap-3">
+                <img src={auth.currentUser?.photoURL || ''} className="w-8 h-8 rounded-full border border-gold/20" alt="User" />
+                <span className="text-xs text-white/60">{auth.currentUser?.displayName}</span>
+              </div>
+            )}
             <button className="hidden lg:flex items-center gap-3 text-white/40 hover:text-gold transition-all group">
               <Search size={18} className="group-hover:scale-110 transition-transform" />
               <span className="text-xs tracking-[0.2em] font-light">搜索珍馐</span>
             </button>
-            <button onClick={() => setIsCartOpen(true)} className="relative p-3 bg-gold/5 hover:bg-gold/10 border border-gold/20 rounded-full transition-all group">
-              <ShoppingCart className="text-gold group-hover:scale-110 transition-transform" size={22} />
-              {totalCount > 0 && (
-                <span className={`absolute -top-1 -right-1 w-6 h-6 bg-gold text-black text-[11px] font-bold rounded-full flex items-center justify-center border-2 border-${currentBgColor.replace('bg-', '')} shadow-lg transition-colors duration-1000`}>
-                  {totalCount}
-                </span>
-              )}
-            </button>
+            {settings.cartEnabled && (
+              <button onClick={() => setIsCartOpen(true)} className="relative p-3 bg-gold/5 hover:bg-gold/10 border border-gold/20 rounded-full transition-all group">
+                <ShoppingCart className="text-gold group-hover:scale-110 transition-transform" size={22} />
+                {totalCount > 0 && (
+                  <span className={`absolute -top-1 -right-1 w-6 h-6 bg-gold text-black text-[11px] font-bold rounded-full flex items-center justify-center border-2 border-${currentBgColor.replace('bg-', '')} shadow-lg transition-colors duration-1000`}>
+                    {totalCount}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
         </header>
 
         {/* Category Cover Section */}
         <CategoryCover 
-          category={CATEGORIES.find(c => c.id === activeCategory)!} 
+          category={categories.find(c => c.id === activeCategory)!} 
           bgColor={currentBgColor}
         />
 
@@ -593,7 +697,7 @@ export default function App() {
                   <h2 className="font-serif text-3xl md:text-4xl text-gold tracking-[0.3em] uppercase drop-shadow-sm">主厨珍藏 Signature</h2>
                 </div>
                 <div className="space-y-16">
-                  {DISHES.filter(d => d.isHero).map(dish => (
+                  {dishes.filter(d => d.isHero).map(dish => (
                     <DishCardHero key={dish.id} dish={dish} onAdd={addToCart} onPlayVideo={(url) => setActiveVideo(url)} onShowDetail={setSelectedDish} bgColor={currentBgColor} />
                   ))}
                 </div>
@@ -606,7 +710,7 @@ export default function App() {
                   <h2 className="font-serif text-3xl md:text-4xl text-gold tracking-[0.3em] uppercase drop-shadow-sm">人气推荐 Featured</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-                  {DISHES.filter(d => d.isFeatured).map(dish => (
+                  {dishes.filter(d => d.isFeatured).map(dish => (
                     <DishCardFeatured key={dish.id} dish={dish} onAdd={addToCart} onPlayVideo={(url) => setActiveVideo(url)} onShowDetail={setSelectedDish} bgColor={currentBgColor} />
                   ))}
                 </div>
@@ -619,7 +723,7 @@ export default function App() {
                   <h2 className="font-serif text-3xl md:text-4xl text-gold tracking-[0.3em] uppercase drop-shadow-sm">全品菜单 All Dishes</h2>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {DISHES.filter(d => !d.isHero && !d.isFeatured).map(dish => (
+                  {dishes.filter(d => !d.isHero && !d.isFeatured).map(dish => (
                     <DishCardSmall key={dish.id} dish={dish} onAdd={addToCart} onPlayVideo={(url) => setActiveVideo(url)} onShowDetail={setSelectedDish} bgColor={currentBgColor} />
                   ))}
                 </div>
@@ -631,7 +735,7 @@ export default function App() {
               <div className="flex flex-col items-center text-center mb-24">
                 <span className="text-gold text-xs tracking-[0.8em] uppercase mb-6 opacity-60">Category Selection</span>
                 <h2 className="font-serif text-5xl md:text-8xl text-white tracking-[0.2em] mb-8 drop-shadow-lg">
-                  {CATEGORIES.find(c => c.id === activeCategory)?.name}
+                  {categories.find(c => c.id === activeCategory)?.name}
                 </h2>
                 <div className="w-32 h-[1px] bg-gold/30 shadow-[0_0_15px_rgba(197,160,89,0.2)]" />
               </div>
@@ -790,7 +894,7 @@ export default function App() {
               <X size={32} />
             </button>
             <div className="grid grid-cols-2 gap-x-12 gap-y-16">
-              {CATEGORIES.map(cat => {
+              {categories.map(cat => {
                 const IconComponent = CATEGORY_ICONS[cat.icon];
                 return (
                   <button
@@ -803,7 +907,7 @@ export default function App() {
                     className="flex flex-col items-center gap-3"
                   >
                     <motion.div 
-                      className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl ${cat.iconBg} ${
+                      className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl ${cat.iconBg || 'bg-orange-500'} ${
                         activeCategory === cat.id ? 'ring-4 ring-gold/40' : ''
                       }`}
                       whileTap={{ scale: 0.9 }}

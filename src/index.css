@@ -3,8 +3,9 @@
 @theme {
   --font-serif: "Playfair Display", "Noto Serif SC", serif;
   --font-sans: "Inter", "Noto Sans SC", sans-serif;
+  --font-mono: "JetBrains Mono", "Roboto Mono", monospace;
   
-  --color-gold: #c5a059;
+  --color-gold: var(--primary-color, #c5a059);
   --color-deep-red: #210101;
   --color-deep-orange: #2b1401;
   --color-deep-purple: #1a0121;

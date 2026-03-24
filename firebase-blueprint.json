@@ -1,0 +1,90 @@
+{
+  "entities": {
+    "Settings": {
+      "title": "Site Settings",
+      "description": "Global configuration for the website",
+      "type": "object",
+      "properties": {
+        "siteName": { "type": "string", "description": "Name of the restaurant" },
+        "siteDescription": { "type": "string", "description": "Description of the restaurant" },
+        "cartEnabled": { "type": "boolean", "description": "Whether the shopping cart is enabled" },
+        "themeTemplate": { "type": "string", "description": "Selected theme template ID" },
+        "fontFamily": { "type": "string", "description": "Selected font family" },
+        "primaryColor": { "type": "string", "description": "Primary theme color" }
+      },
+      "required": ["siteName", "cartEnabled"]
+    },
+    "Category": {
+      "title": "Dish Category",
+      "description": "A category for dishes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "icon": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["id", "name", "icon"]
+    },
+    "Dish": {
+      "title": "Dish",
+      "description": "A menu item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "image": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "isHero": { "type": "boolean" },
+        "isFeatured": { "type": "boolean" }
+      },
+      "required": ["id", "name", "price", "category"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "A customer order",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "tableId": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "dishId": { "type": "string" },
+              "name": { "type": "string" },
+              "price": { "type": "number" },
+              "quantity": { "type": "number" }
+            }
+          }
+        },
+        "total": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "preparing", "served", "completed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "tableId", "items", "total", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/settings/global": {
+      "schema": "Settings",
+      "description": "Global site settings"
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Menu categories"
+    },
+    "/dishes/{dishId}": {
+      "schema": "Dish",
+      "description": "Menu items"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer orders"
+    }
+  }
+}

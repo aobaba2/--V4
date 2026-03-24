@@ -1,0 +1,90 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "yujianfei2016@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: settings
+    // Document ID: global
+    // Fields:
+    //   - siteName: string (required)
+    //   - siteDescription: string
+    //   - cartEnabled: boolean (required)
+    //   - themeTemplate: string
+    //   - fontFamily: string
+    //   - primaryColor: string
+
+    // Collection: categories
+    // Document ID: categoryId
+    // Fields:
+    //   - id: string (required)
+    //   - name: string (required)
+    //   - icon: string (required)
+    //   - order: number
+
+    // Collection: dishes
+    // Document ID: dishId
+    // Fields:
+    //   - id: string (required)
+    //   - name: string (required)
+    //   - price: number (required)
+    //   - image: string
+    //   - videoUrl: string
+    //   - description: string
+    //   - category: string (required)
+    //   - isHero: boolean
+    //   - isFeatured: boolean
+
+    // Collection: orders
+    // Document ID: orderId
+    // Fields:
+    //   - id: string (required)
+    //   - tableId: string (required)
+    //   - items: list (required)
+    //   - total: number (required)
+    //   - status: string (required)
+    //   - createdAt: timestamp (required)
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /settings/global {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /dishes/{dishId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow read: if isAdmin();
+      allow create: if true; // Customers can create orders
+      allow update: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId || isAdmin();
+    }
+  }
+}
