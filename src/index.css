@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", "Noto Serif SC", serif;
+  --font-sans: "Inter", "Noto Sans SC", sans-serif;
+  
+  --color-gold: #c5a059;
+  --color-deep-red: #210101;
+}
+
+@layer base {
+  body {
+    @apply bg-deep-red text-white font-sans antialiased;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-white/20 rounded-full;
+}
+
+.vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.glass-panel {
+  @apply bg-black/40 backdrop-blur-md border border-white/10;
+}
