@@ -37,6 +37,11 @@ import {
   onSnapshot, 
   doc, 
   addDoc, 
+  setDoc,
+  getDoc,
+  getDocs,
+  writeBatch,
+  getDocFromServer,
   serverTimestamp, 
   query, 
   orderBy 
@@ -327,48 +332,235 @@ const DishCardFeatured = ({ dish, onAdd, onPlayVideo, onShowDetail, bgColor }: D
   );
 };
 
-const DishCardSmall = ({ dish, onAdd, onPlayVideo, onShowDetail, bgColor }: DishCardProps) => {
+const LandscapeDishCardHero = ({ dish, onAdd, onPlayVideo, onShowDetail, bgColor }: DishCardProps) => {
   return (
-    <div 
+    <motion.div 
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -50 }}
+      className="flex h-full w-full items-stretch bg-black/20 backdrop-blur-sm"
       onClick={() => onShowDetail(dish)}
-      className="flex gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.08] transition-all duration-500 rounded-lg border border-white/5 group cursor-pointer"
     >
-      <div className="relative w-28 h-28 flex-shrink-0 overflow-hidden rounded-md">
-        <img 
+      {/* Left: Text Content */}
+      <div className="w-[45%] p-12 md:p-24 flex flex-col justify-center relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="flex items-center gap-4 mb-8">
+            <span className="px-4 py-1.5 bg-gold text-black text-xs font-bold tracking-[0.3em] uppercase rounded-sm shadow-[0_5px_15px_rgba(197,160,89,0.4)]">
+              {dish.isHero ? '主厨推荐' : '精选推荐'}
+            </span>
+            <div className="h-[1px] w-16 bg-gold/40" />
+            <span className="text-gold text-xs tracking-[0.4em] uppercase font-light">Signature Selection</span>
+          </div>
+          <h3 className="font-serif text-6xl md:text-8xl text-white mb-10 leading-tight tracking-wide drop-shadow-2xl">{dish.name}</h3>
+          <div className="space-y-8 mb-16">
+            <p className="text-white/80 text-xl md:text-2xl font-light leading-relaxed italic border-l-4 border-gold/40 pl-8 max-w-xl">
+              "{dish.description}"
+            </p>
+            <div className="flex items-center gap-6 text-white/30 text-sm tracking-[0.5em] uppercase font-serif">
+              <span>CRAFTSMANSHIP</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-gold/40" />
+              <span>AUTHENTIC</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-12">
+            <div className="flex flex-col">
+              <span className="text-gold/60 text-[10px] tracking-[0.5em] uppercase mb-1">Price</span>
+              <span className="text-gold font-serif text-6xl">¥{dish.price}</span>
+            </div>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onAdd(dish);
+              }}
+              className="px-16 py-6 bg-gold text-black font-serif text-2xl hover:bg-white transition-all shadow-[0_20px_50px_rgba(197,160,89,0.5)] active:scale-95 rounded-full flex items-center gap-3"
+            >
+              <Plus size={24} />
+              <span>立即品鉴</span>
+            </button>
+          </div>
+          {dish.videoUrl && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onPlayVideo(dish.videoUrl!);
+              }}
+              className="mt-16 flex items-center gap-5 text-white/40 hover:text-gold transition-all group/btn"
+            >
+              <div className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center group-hover/btn:border-gold group-hover/btn:bg-gold/10 transition-all shadow-xl">
+                <PlayCircle size={32} strokeWidth={1} />
+              </div>
+              <div className="flex flex-col items-start">
+                <span className="text-[10px] tracking-[0.5em] uppercase font-bold text-white/20">Watch Video</span>
+                <span className="text-xs tracking-[0.2em] uppercase font-medium">观看制作视频</span>
+              </div>
+            </button>
+          )}
+        </motion.div>
+      </div>
+
+      {/* Right: Large Image */}
+      <div className="w-[55%] relative overflow-hidden">
+        <motion.img 
+          initial={{ scale: 1.2, filter: 'blur(10px)' }}
+          animate={{ scale: 1, filter: 'blur(0px)' }}
+          transition={{ duration: 2, ease: "easeOut" }}
           src={dish.image} 
           alt={dish.name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          className="w-full h-full object-cover"
           referrerPolicy="no-referrer"
         />
-        {dish.videoUrl && (
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              onPlayVideo(dish.videoUrl!);
-            }}
-            className="absolute inset-0 flex items-center justify-center text-white/0 group-hover:text-gold/90 transition-all bg-black/0 group-hover:bg-black/40"
-          >
-            <PlayCircle size={32} strokeWidth={1} />
-          </button>
-        )}
-      </div>
-      <div className="flex-1 flex flex-col justify-between py-1">
-        <div>
-          <h5 className="font-serif text-xl mb-1 group-hover:text-gold transition-colors">{dish.name}</h5>
-          <p className="text-white/30 text-[10px] tracking-wider mb-2 line-clamp-2 font-light">{dish.description || '匠心烹饪，地道风味'}</p>
-          <span className="text-gold font-serif text-lg">¥{dish.price}</span>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+        
+        {/* Decorative elements */}
+        <div className="absolute top-16 right-16 vertical-text text-white/10 text-base tracking-[1.5em] font-serif uppercase">
+          Wushan Traditional Roasted Fish
         </div>
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            onAdd(dish);
-          }}
-          className="self-end w-10 h-10 rounded-full bg-gold/10 text-gold hover:bg-gold hover:text-black transition-all flex items-center justify-center border border-gold/20"
-        >
-          <Plus size={20} />
-        </button>
+        
+        <div className="absolute bottom-16 right-16 flex items-center gap-4">
+          <div className="w-20 h-[1px] bg-white/20" />
+          <span className="text-white/20 text-[10px] tracking-[0.5em] uppercase font-serif">Est. 1998</span>
+        </div>
       </div>
-    </div>
+    </motion.div>
+  );
+};
+
+const LandscapeDishCardGrid = ({ dishes, onAdd, onPlayVideo, onShowDetail, bgColor }: { dishes: Dish[]; onAdd: (d: Dish) => void; onPlayVideo: (url: string) => void; onShowDetail: (d: Dish) => void; bgColor: string }) => {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -50 }}
+      className="grid grid-cols-2 h-full w-full p-16 gap-16 bg-black/10 backdrop-blur-sm"
+    >
+      {dishes.map((dish, idx) => (
+        <motion.div 
+          key={dish.id}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: idx * 0.1 }}
+          onClick={() => onShowDetail(dish)}
+          className="relative group cursor-pointer overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] hover:border-gold/40 transition-all duration-700 shadow-2xl"
+        >
+          <div className="h-[60%] overflow-hidden relative">
+            <img 
+              src={dish.image} 
+              alt={dish.name}
+              className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110"
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-500 flex items-center justify-center">
+              {dish.videoUrl && (
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPlayVideo(dish.videoUrl!);
+                  }}
+                  className="text-white/0 group-hover:text-gold/90 transition-all transform scale-50 group-hover:scale-100 duration-500"
+                >
+                  <PlayCircle size={64} strokeWidth={1} />
+                </button>
+              )}
+            </div>
+            <div className="absolute top-8 right-8">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAdd(dish);
+                }}
+                className="w-14 h-14 rounded-full bg-gold text-black hover:bg-white transition-all flex items-center justify-center shadow-[0_10px_20px_rgba(197,160,89,0.4)] active:scale-90"
+              >
+                <Plus size={28} />
+              </button>
+            </div>
+          </div>
+          <div className="h-[40%] p-10 flex flex-col justify-between">
+            <div>
+              <div className="flex justify-between items-start mb-4">
+                <h4 className="font-serif text-4xl text-white group-hover:text-gold transition-colors tracking-wide">{dish.name}</h4>
+                <span className="text-gold font-serif text-4xl">¥{dish.price}</span>
+              </div>
+              <p className="text-white/50 text-base font-light leading-relaxed line-clamp-2 italic border-l-2 border-gold/20 pl-4">
+                "{dish.description}"
+              </p>
+            </div>
+            <div className="flex items-center gap-6 mt-6">
+              <div className="h-[1px] flex-1 bg-white/10" />
+              <div className="flex items-center gap-2 text-[10px] tracking-[0.4em] text-white/20 uppercase group-hover:text-gold/40 transition-colors">
+                <span>View Details</span>
+                <ChevronRight size={12} />
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+};
+
+const LandscapeDishCardCompactGrid = ({ dishes, onAdd, onPlayVideo, onShowDetail, bgColor }: { dishes: Dish[]; onAdd: (d: Dish) => void; onPlayVideo: (url: string) => void; onShowDetail: (d: Dish) => void; bgColor: string }) => {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -50 }}
+      className="grid grid-cols-3 grid-rows-2 h-full w-full p-8 gap-6 bg-black/20 backdrop-blur-sm"
+    >
+      {dishes.map((dish, idx) => (
+        <motion.div 
+          key={dish.id}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: idx * 0.05 }}
+          onClick={() => onShowDetail(dish)}
+          className="relative group cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-white/[0.05] hover:border-gold/40 transition-all duration-500 shadow-xl flex flex-col"
+        >
+          <div className="h-[55%] overflow-hidden relative">
+            <img 
+              src={dish.image} 
+              alt={dish.name}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              referrerPolicy="no-referrer"
+            />
+            {/* Tag like in the image */}
+            <div className="absolute top-2 left-2 bg-white/90 text-black px-2 py-0.5 rounded text-[10px] font-bold shadow-sm">
+              椒麻入味
+            </div>
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all" />
+          </div>
+          <div className="h-[45%] p-4 flex flex-col justify-between">
+            <div>
+              <h4 className="font-serif text-lg text-white group-hover:text-gold transition-colors truncate">{dish.name}</h4>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-white/40 text-[10px] font-light line-clamp-1 italic">"{dish.description}"</p>
+                <span className="text-white/20 text-[9px] border border-white/10 px-1 rounded">10-15秒</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <div className="flex flex-col">
+                <span className="text-gold font-serif text-xl">¥{dish.price}</span>
+                <span className="text-white/20 text-[8px] uppercase tracking-tighter">Per Portion</span>
+              </div>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAdd(dish);
+                }}
+                className="w-8 h-8 rounded-full border border-white/20 text-white/60 hover:bg-gold hover:text-black hover:border-gold transition-all flex items-center justify-center"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </motion.div>
   );
 };
 
@@ -409,18 +601,138 @@ export default function App() {
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [tableNumber, setTableNumber] = useState<string>("");
   const [isOrdering, setIsOrdering] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [direction, setDirection] = useState(0);
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  // Group dishes into pages for landscape view
+  const pages = useMemo(() => {
+    const filtered = activeCategory === 'all' 
+      ? dishes.filter(d => d.isFeatured)
+      : dishes.filter(d => d.category === activeCategory);
+    
+    const result: { type: 'cover' | 'hero' | 'grid' | 'compact-grid'; data: any }[] = [];
+    
+    // Always start with a cover page
+    const category = categories.find(c => c.id === activeCategory);
+    if (category) {
+      result.push({ type: 'cover', data: category });
+    }
+
+    // Hero dishes get their own page
+    const heroes = filtered.filter(d => d.isHero);
+    heroes.forEach(h => result.push({ type: 'hero', data: h }));
+
+    // Regular dishes are grouped by 2 or 6
+    const others = filtered.filter(d => !d.isHero);
+    
+    if (activeCategory === 'all') {
+      // Special logic for "Featured Recommendations"
+      // Build pages 1-5 (after cover) as hero or grid
+      // Page 0: Cover
+      // Page 1-N: Heroes
+      // Then Grids of 2 until we reach page 6
+      
+      let currentOthersIdx = 0;
+      
+      // We already added heroes. Let's see how many pages we have.
+      while (result.length < 6 && currentOthersIdx < others.length) {
+        result.push({ type: 'grid', data: others.slice(currentOthersIdx, currentOthersIdx + 2) });
+        currentOthersIdx += 2;
+      }
+      
+      // From page 6 onwards, use 3x2 (6 dishes)
+      while (currentOthersIdx < others.length) {
+        result.push({ type: 'compact-grid', data: others.slice(currentOthersIdx, currentOthersIdx + 6) });
+        currentOthersIdx += 6;
+      }
+    } else {
+      // Regular categories use 2-dish grids
+      for (let i = 0; i < others.length; i += 2) {
+        result.push({ type: 'grid', data: others.slice(i, i + 2) });
+      }
+    }
+
+    return result;
+  }, [dishes, activeCategory, categories]);
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [activeCategory]);
+
   // Auth & Real-time Data
   useEffect(() => {
+    const initData = async () => {
+      try {
+        const categoriesSnap = await getDocs(collection(db, 'categories'));
+        const dishesSnap = await getDocs(collection(db, 'dishes'));
+        const settingsSnap = await getDoc(doc(db, 'settings', 'global'));
+
+        if (categoriesSnap.empty) {
+          const batch = writeBatch(db);
+          INITIAL_CATEGORIES.forEach((cat, index) => {
+            const catRef = doc(db, 'categories', cat.id);
+            batch.set(catRef, { ...cat, order: index });
+          });
+          await batch.commit();
+          console.log('Categories initialized');
+        }
+
+        if (dishesSnap.empty) {
+          const batch = writeBatch(db);
+          INITIAL_DISHES.forEach((dish) => {
+            const dishRef = doc(db, 'dishes', dish.id);
+            batch.set(dishRef, dish);
+          });
+          await batch.commit();
+          console.log('Dishes initialized');
+        }
+
+        if (!settingsSnap.exists()) {
+          await setDoc(doc(db, 'settings', 'global'), {
+            siteName: '巫山烤鱼',
+            siteDescription: '地道风味，匠心烤制',
+            cartEnabled: true,
+            themeTemplate: 'default',
+            fontFamily: 'sans',
+            primaryColor: '#FF4B2B'
+          });
+          console.log('Settings initialized');
+        }
+      } catch (error) {
+        // Only log if it's not a permission error, or if we want to debug
+        if (error instanceof Error && !error.message.includes('permission')) {
+          console.error('Error initializing data:', error);
+        }
+      }
+    };
+
+    const testConnection = async () => {
+      try {
+        await getDocFromServer(doc(db, 'test', 'connection'));
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('client is offline')) {
+          console.error("Please check your Firebase configuration.");
+        }
+      }
+    };
+
+    testConnection();
+
     const unsubAuth = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
+        const isAdmin = firebaseUser.email === 'yujianfei2016@gmail.com';
         setUser({
           uid: firebaseUser.uid,
           email: firebaseUser.email,
-          role: firebaseUser.email === 'yujianfei2016@gmail.com' ? 'admin' : 'user'
+          role: isAdmin ? 'admin' : 'user'
         });
+        
+        // Only attempt initialization if the user is an admin
+        if (isAdmin) {
+          initData();
+        }
       } else {
         setUser(null);
       }
@@ -543,218 +855,225 @@ export default function App() {
     return <AdminDashboard onLogout={handleLogout} />;
   }
 
+  const paginate = (newDirection: number) => {
+    const newPage = currentPage + newDirection;
+    if (newPage >= 0 && newPage < pages.length) {
+      setDirection(newDirection);
+      setCurrentPage(newPage);
+    }
+  };
+
   return (
-    <div className={`flex h-screen overflow-hidden ${currentBgColor} transition-colors duration-1000 selection:bg-gold/30 font-${settings.fontFamily}`}>
+    <div className={`flex flex-col h-screen overflow-hidden ${currentBgColor} transition-colors duration-1000 selection:bg-gold/30 font-${settings.fontFamily}`}>
       <style>{`
         :root {
           --primary-color: ${settings.primaryColor};
         }
       `}</style>
-      
-      {/* Sidebar Navigation - Tablet/Desktop */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-24 md:w-32 ${currentBgColor} border-r border-white/5 flex flex-col items-center py-12 transition-colors duration-1000 transition-transform duration-500 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
-        <div className="mb-16">
-          <motion.div 
-            className="w-16 h-16 border-2 border-gold rounded-full flex items-center justify-center text-gold font-serif text-2xl shadow-[0_0_20px_rgba(197,160,89,0.3)]"
-            whileHover={{ scale: 1.1, rotate: 360 }}
-            transition={{ duration: 0.8 }}
-          >
-            巫
-          </motion.div>
-        </div>
-        
-        <nav className="flex-1 flex flex-col gap-10 w-full px-4 py-4">
-          {categories.map(cat => {
-            const IconComponent = CATEGORY_ICONS[cat.icon];
-            return (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  setActiveCategory(cat.id);
-                  setIsSidebarOpen(false);
-                  scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="group flex flex-col items-center gap-2 w-full"
-              >
-                <motion.div 
-                  className={`relative w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 ${cat.iconBg || 'bg-orange-500'} ${
-                    activeCategory === cat.id 
-                    ? 'scale-110 ring-4 ring-gold/30' 
-                    : 'opacity-80 group-hover:opacity-100 group-hover:scale-105'
-                  }`}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {IconComponent && <IconComponent size={28} className="text-white" strokeWidth={2.5} />}
-                  
-                  {/* Active Indicator Dot (Badge style) */}
-                  {activeCategory === cat.id && (
-                    <motion.div 
-                      layoutId="activeNavBadge"
-                      className="absolute -top-1 -right-1 w-4 h-4 bg-gold rounded-full border-2 border-black"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                    />
-                  )}
-                </motion.div>
-                
-                <span className={`text-[11px] font-medium tracking-wider transition-colors duration-300 ${
-                  activeCategory === cat.id ? 'text-gold' : 'text-white/40 group-hover:text-white/70'
-                }`}>
-                  {cat.name}
-                </span>
-              </button>
-            );
-          })}
-        </nav>
-        
-        <div className="mt-auto flex flex-col gap-6 opacity-20">
-          <Phone size={18} className="hover:text-gold transition-colors cursor-pointer" />
-          <MapPin size={18} className="hover:text-gold transition-colors cursor-pointer" />
-        </div>
-      </aside>
 
-      {/* Main Content Area */}
-      <main 
-        ref={scrollContainerRef}
-        className={`flex-1 ml-0 md:ml-32 overflow-y-auto scroll-smooth ${currentBgColor} transition-colors duration-1000`}
-      >
-        {/* Persistent Header */}
-        <header className="sticky top-0 left-0 right-0 z-40 h-24 px-6 md:px-12 flex items-center justify-between glass-panel border-b border-gold/10">
-          <div className="flex items-center gap-6">
-            <button className="md:hidden text-gold" onClick={() => setIsSidebarOpen(true)}>
-              <MenuIcon size={28} />
-            </button>
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex w-12 h-12 border-2 border-gold rounded-full items-center justify-center text-gold font-serif text-2xl shadow-[0_0_15px_rgba(197,160,89,0.2)]">
-                巫
-              </div>
-              <div className="flex flex-col">
-                <h1 className="font-serif text-2xl md:text-3xl tracking-[0.3em] text-gold uppercase drop-shadow-sm">{settings.siteName}</h1>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-[1px] bg-gold/30" />
-                  <span className="text-[9px] tracking-[0.5em] text-white/50 uppercase font-medium">{settings.siteDescription}</span>
-                </div>
-              </div>
+      {/* Top Navigation Bar - Landscape Optimized */}
+      <header className="h-28 px-10 flex items-center justify-between glass-panel border-b border-gold/20 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+        <div className="flex items-center gap-12">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 border-2 border-gold rounded-full flex items-center justify-center text-gold font-serif text-3xl shadow-[0_0_20px_rgba(197,160,89,0.4)] bg-black/40">
+              巫
+            </div>
+            <div className="flex flex-col">
+              <h1 className="font-serif text-3xl tracking-[0.3em] text-gold uppercase drop-shadow-lg">{settings.siteName}</h1>
+              <span className="text-[10px] tracking-[0.5em] text-white/50 uppercase font-light">{settings.siteDescription}</span>
             </div>
           </div>
           
-          <div className="flex items-center gap-8">
-            {user?.role === 'admin' && (
-              <button 
-                onClick={() => setIsAdminView(true)}
-                className="hidden md:flex items-center gap-2 text-white/40 hover:text-gold transition-all"
+          <div className="h-12 w-[1px] bg-white/10 mx-2" />
+
+          {/* Horizontal Category List */}
+          <nav className="flex items-center gap-4 overflow-x-auto no-scrollbar max-w-3xl py-2">
+            {categories.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`group relative px-8 py-3 rounded-xl text-base tracking-[0.2em] transition-all duration-500 whitespace-nowrap overflow-hidden ${
+                  activeCategory === cat.id 
+                  ? 'text-black font-bold' 
+                  : 'text-white/70 hover:text-white'
+                }`}
               >
-                <LayoutDashboard size={18} />
-                <span className="text-xs tracking-[0.2em] font-light">管理后台</span>
-              </button>
-            )}
-            {!user ? (
-              <button 
-                onClick={handleLogin}
-                className="hidden md:flex items-center gap-2 text-white/40 hover:text-gold transition-all"
-              >
-                <UserIcon size={18} />
-                <span className="text-xs tracking-[0.2em] font-light">登录</span>
-              </button>
-            ) : (
-              <div className="hidden md:flex items-center gap-3">
-                <img src={auth.currentUser?.photoURL || ''} className="w-8 h-8 rounded-full border border-gold/20" alt="User" />
-                <span className="text-xs text-white/60">{auth.currentUser?.displayName}</span>
-              </div>
-            )}
-            <button className="hidden lg:flex items-center gap-3 text-white/40 hover:text-gold transition-all group">
-              <Search size={18} className="group-hover:scale-110 transition-transform" />
-              <span className="text-xs tracking-[0.2em] font-light">搜索珍馐</span>
-            </button>
-            {settings.cartEnabled && (
-              <button onClick={() => setIsCartOpen(true)} className="relative p-3 bg-gold/5 hover:bg-gold/10 border border-gold/20 rounded-full transition-all group">
-                <ShoppingCart className="text-gold group-hover:scale-110 transition-transform" size={22} />
-                {totalCount > 0 && (
-                  <span className={`absolute -top-1 -right-1 w-6 h-6 bg-gold text-black text-[11px] font-bold rounded-full flex items-center justify-center border-2 border-${currentBgColor.replace('bg-', '')} shadow-lg transition-colors duration-1000`}>
-                    {totalCount}
-                  </span>
+                {/* Background Layer */}
+                <div className={`absolute inset-0 transition-transform duration-500 ${
+                  activeCategory === cat.id ? 'translate-y-0' : 'translate-y-full'
+                } bg-gradient-to-br from-gold via-gold/90 to-gold/80`} />
+                
+                {/* Hover Layer */}
+                <div className={`absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                
+                {/* Content */}
+                <span className="relative z-10 flex items-center gap-2">
+                  {cat.id === 'all' && <Star size={16} className={activeCategory === 'all' ? 'text-black' : 'text-gold'} />}
+                  {cat.name}
+                </span>
+
+                {/* Bottom Border for non-active */}
+                {activeCategory !== cat.id && (
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gold/30 scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
                 )}
               </button>
-            )}
-          </div>
-        </header>
-
-        {/* Category Cover Section */}
-        <CategoryCover 
-          category={categories.find(c => c.id === activeCategory)!} 
-          bgColor={currentBgColor}
-        />
-
-        {/* Dishes List Section */}
-        <div className="max-w-7xl mx-auto px-6 md:px-12 py-24 space-y-32">
-          
-          {activeCategory === 'all' ? (
-            <>
-              {/* Signature Section for Home */}
-              <section>
-                <div className="flex items-center gap-6 mb-16">
-                  <div className="w-16 h-[1px] bg-gold shadow-[0_0_10px_rgba(197,160,89,0.5)]" />
-                  <h2 className="font-serif text-3xl md:text-4xl text-gold tracking-[0.3em] uppercase drop-shadow-sm">主厨珍藏 Signature</h2>
-                </div>
-                <div className="space-y-16">
-                  {dishes.filter(d => d.isHero).map(dish => (
-                    <DishCardHero key={dish.id} dish={dish} onAdd={addToCart} onPlayVideo={(url) => setActiveVideo(url)} onShowDetail={setSelectedDish} bgColor={currentBgColor} />
-                  ))}
-                </div>
-              </section>
-
-              {/* Featured Grid */}
-              <section>
-                <div className="flex items-center gap-6 mb-16">
-                  <div className="w-16 h-[1px] bg-gold shadow-[0_0_10px_rgba(197,160,89,0.5)]" />
-                  <h2 className="font-serif text-3xl md:text-4xl text-gold tracking-[0.3em] uppercase drop-shadow-sm">人气推荐 Featured</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-                  {dishes.filter(d => d.isFeatured).map(dish => (
-                    <DishCardFeatured key={dish.id} dish={dish} onAdd={addToCart} onPlayVideo={(url) => setActiveVideo(url)} onShowDetail={setSelectedDish} bgColor={currentBgColor} />
-                  ))}
-                </div>
-              </section>
-
-              {/* All Dishes List */}
-              <section>
-                <div className="flex items-center gap-6 mb-16">
-                  <div className="w-16 h-[1px] bg-gold shadow-[0_0_10px_rgba(197,160,89,0.5)]" />
-                  <h2 className="font-serif text-3xl md:text-4xl text-gold tracking-[0.3em] uppercase drop-shadow-sm">全品菜单 All Dishes</h2>
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {dishes.filter(d => !d.isHero && !d.isFeatured).map(dish => (
-                    <DishCardSmall key={dish.id} dish={dish} onAdd={addToCart} onPlayVideo={(url) => setActiveVideo(url)} onShowDetail={setSelectedDish} bgColor={currentBgColor} />
-                  ))}
-                </div>
-              </section>
-            </>
-          ) : (
-            <>
-              {/* Category Header */}
-              <div className="flex flex-col items-center text-center mb-24">
-                <span className="text-gold text-xs tracking-[0.8em] uppercase mb-6 opacity-60">Category Selection</span>
-                <h2 className="font-serif text-5xl md:text-8xl text-white tracking-[0.2em] mb-8 drop-shadow-lg">
-                  {categories.find(c => c.id === activeCategory)?.name}
-                </h2>
-                <div className="w-32 h-[1px] bg-gold/30 shadow-[0_0_15px_rgba(197,160,89,0.2)]" />
-              </div>
-
-              {/* Category Dishes */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-                {filteredDishes.map(dish => (
-                  <DishCardFeatured key={dish.id} dish={dish} onAdd={addToCart} onPlayVideo={(url) => setActiveVideo(url)} onShowDetail={setSelectedDish} bgColor={currentBgColor} />
-                ))}
-              </div>
-            </>
-          )}
+            ))}
+          </nav>
         </div>
 
-        {/* Footer */}
-        <footer className="py-24 px-12 border-t border-white/5 text-center opacity-20">
-          <p className="text-sm tracking-[0.5em] mb-4 uppercase">Wushan Roasted Fish</p>
-          <p className="text-xs tracking-widest">© 2026 巫山烤全鱼 · 匠心传承 · 烟火煨春秋</p>
-        </footer>
+        <div className="flex items-center gap-8">
+          {user?.role === 'admin' && (
+            <button 
+              onClick={() => setIsAdminView(true)}
+              className="p-4 text-white/50 hover:text-gold transition-all bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10"
+            >
+              <LayoutDashboard size={24} />
+            </button>
+          )}
+          {!user ? (
+            <button 
+              onClick={handleLogin}
+              className="flex items-center gap-3 px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-sm tracking-[0.2em] text-white/70 transition-all active:scale-95"
+            >
+              <UserIcon size={18} />
+              <span>登录</span>
+            </button>
+          ) : (
+            <div className="flex items-center gap-4 px-5 py-3 bg-white/5 border border-white/10 rounded-2xl">
+              <img src={auth.currentUser?.photoURL || ''} className="w-8 h-8 rounded-full border-2 border-gold/30" alt="User" />
+              <div className="flex flex-col">
+                <span className="text-xs text-white/80 tracking-wider font-medium">{auth.currentUser?.displayName}</span>
+                <span className="text-[8px] text-gold/60 tracking-[0.2em] uppercase">Member</span>
+              </div>
+            </div>
+          )}
+          
+          {settings.cartEnabled && (
+            <button onClick={() => setIsCartOpen(true)} className="relative p-4 bg-gold/10 hover:bg-gold/20 border border-gold/30 rounded-2xl transition-all group shadow-lg">
+              <ShoppingCart className="text-gold group-hover:scale-110 transition-transform" size={26} />
+              {totalCount > 0 && (
+                <span className="absolute -top-2 -right-2 w-7 h-7 bg-gold text-black text-xs font-bold rounded-full flex items-center justify-center border-2 border-black shadow-[0_0_15px_rgba(197,160,89,0.5)]">
+                  {totalCount}
+                </span>
+              )}
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* Main Content - Horizontal Paging */}
+      <main className="flex-1 relative overflow-hidden">
+        <AnimatePresence initial={false} custom={direction} mode="wait">
+          <motion.div
+            key={`${activeCategory}-${currentPage}`}
+            custom={direction}
+            initial={{ 
+              opacity: 0, 
+              x: direction > 0 ? 300 : -300,
+              scale: 0.95,
+              rotateY: direction > 0 ? 15 : -15
+            }}
+            animate={{ 
+              opacity: 1, 
+              x: 0,
+              scale: 1,
+              rotateY: 0
+            }}
+            exit={{ 
+              opacity: 0, 
+              x: direction > 0 ? -300 : 300,
+              scale: 0.95,
+              rotateY: direction > 0 ? -15 : 15
+            }}
+            transition={{ 
+              type: 'spring', 
+              damping: 30, 
+              stiffness: 150,
+              mass: 1
+            }}
+            className="absolute inset-0 preserve-3d"
+          >
+            {pages[currentPage]?.type === 'cover' && (
+              <CategoryCover category={pages[currentPage].data} bgColor={currentBgColor} />
+            )}
+            {pages[currentPage]?.type === 'hero' && (
+              <LandscapeDishCardHero 
+                dish={pages[currentPage].data} 
+                onAdd={addToCart} 
+                onPlayVideo={setActiveVideo} 
+                onShowDetail={setSelectedDish} 
+                bgColor={currentBgColor} 
+              />
+            )}
+            {pages[currentPage]?.type === 'grid' && (
+              <LandscapeDishCardGrid 
+                dishes={pages[currentPage].data} 
+                onAdd={addToCart} 
+                onPlayVideo={setActiveVideo} 
+                onShowDetail={setSelectedDish} 
+                bgColor={currentBgColor} 
+              />
+            )}
+            {pages[currentPage]?.type === 'compact-grid' && (
+              <LandscapeDishCardCompactGrid 
+                dishes={pages[currentPage].data} 
+                onAdd={addToCart} 
+                onPlayVideo={setActiveVideo} 
+                onShowDetail={setSelectedDish} 
+                bgColor={currentBgColor} 
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Navigation Arrows */}
+        {currentPage > 0 && (
+          <button 
+            onClick={() => paginate(-1)}
+            className="absolute left-8 top-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-black/20 hover:bg-black/40 border border-white/10 flex items-center justify-center text-white/50 hover:text-gold transition-all z-40 backdrop-blur-sm"
+          >
+            <ChevronRight size={32} className="rotate-180" />
+          </button>
+        )}
+        {currentPage < pages.length - 1 && (
+          <button 
+            onClick={() => paginate(1)}
+            className="absolute right-8 top-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-black/20 hover:bg-black/40 border border-white/10 flex items-center justify-center text-white/50 hover:text-gold transition-all z-40 backdrop-blur-sm"
+          >
+            <ChevronRight size={32} />
+          </button>
+        )}
+
+        {/* Back to Start Button (Bottom Left) */}
+        {currentPage > 0 && (
+          <button 
+            onClick={() => {
+              setDirection(-1);
+              setCurrentPage(0);
+            }}
+            className="absolute bottom-8 left-8 flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 rounded-full text-xs tracking-widest text-white/60 transition-all z-40 border border-white/5 backdrop-blur-sm"
+          >
+            <X size={16} className="rotate-45" />
+            <span>返回封面</span>
+          </button>
+        )}
+        {/* Page Indicators */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-3 z-40 bg-black/20 backdrop-blur-md px-6 py-3 rounded-full border border-white/10">
+          {pages.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => {
+                setDirection(idx > currentPage ? 1 : -1);
+                setCurrentPage(idx);
+              }}
+              className={`transition-all duration-500 rounded-full ${
+                currentPage === idx 
+                ? 'w-10 h-2 bg-gold shadow-[0_0_10px_rgba(197,160,89,0.8)]' 
+                : 'w-2 h-2 bg-white/20 hover:bg-white/40'
+              }`}
+            />
+          ))}
+        </div>
       </main>
 
       {/* Video Modal */}

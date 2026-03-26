@@ -131,7 +131,8 @@ export const DISHES: Dish[] = [
     videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-chef-preparing-a-dish-in-a-professional-kitchen-41624-large.mp4',
     description: '选用三斤以上鲜活草鱼，秘制麻辣底料，炭火慢烤，皮脆肉嫩。',
     category: 'northeast',
-    isHero: true
+    isHero: true,
+    isFeatured: true
   },
   {
     id: '2',
@@ -153,6 +154,33 @@ export const DISHES: Dish[] = [
     category: 'northeast',
     isFeatured: true
   },
+  {
+    id: 'f1',
+    name: '招牌红烧肉',
+    price: 68,
+    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=1000',
+    description: '肥而不腻，入口即化，色泽红亮，经典本帮风味。',
+    category: 'northeast',
+    isFeatured: true
+  },
+  {
+    id: 'f2',
+    name: '清蒸大闸蟹',
+    price: 88,
+    image: 'https://images.unsplash.com/photo-1559742811-822873691df8?auto=format&fit=crop&q=80&w=1000',
+    description: '鲜美无比，膏红肉满，搭配秘制姜醋汁。',
+    category: 'northeast',
+    isFeatured: true
+  },
+  {
+    id: 'f3',
+    name: '松鼠桂鱼',
+    price: 158,
+    image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&q=80&w=1000',
+    description: '外脆内嫩，酸甜适口，造型优美，宴请首选。',
+    category: 'northeast',
+    isFeatured: true
+  },
   // 配菜 -> 巴蜀川菜
   {
     id: '4',
@@ -160,7 +188,8 @@ export const DISHES: Dish[] = [
     price: 12,
     image: 'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&q=80&w=1000',
     description: '吸满烤鱼汤汁的腐竹，口感筋道，豆香浓郁。',
-    category: 'sichuan'
+    category: 'sichuan',
+    isFeatured: true
   },
   {
     id: '5',
@@ -178,6 +207,15 @@ export const DISHES: Dish[] = [
     description: 'Q弹爽滑，低脂健康，吸收汤汁后极其入味。',
     category: 'sichuan'
   },
+  {
+    id: 'f4',
+    name: '麻婆豆腐',
+    price: 28,
+    image: 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&q=80&w=1000',
+    description: '麻辣烫鲜香酥嫩，川菜经典，下饭神器。',
+    category: 'sichuan',
+    isFeatured: true
+  },
   // 凉菜 -> 火辣下酒菜
   {
     id: '7',
@@ -187,7 +225,8 @@ export const DISHES: Dish[] = [
     videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-chef-preparing-a-dish-in-a-professional-kitchen-41624-large.mp4',
     description: '皮爽肉滑，麻辣鲜香，红油透亮，让人食欲大增。',
     category: 'bar-snacks',
-    isHero: true
+    isHero: true,
+    isFeatured: true
   },
   {
     id: '8',
@@ -195,16 +234,27 @@ export const DISHES: Dish[] = [
     price: 18,
     image: 'https://images.unsplash.com/photo-1563117504-715df33d3f2a?auto=format&fit=crop&q=80&w=600',
     description: '清脆爽口，酸辣适中，解辣神器。',
-    category: 'bar-snacks'
+    category: 'bar-snacks',
+    isFeatured: true
   },
-  // 饮品 -> 开胃凉菜 (Wait, the user said "清爽饮品：改成 开胃凉菜")
+  {
+    id: 'f5',
+    name: '夫妻肺片',
+    price: 48,
+    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=1000',
+    description: '质嫩味鲜，麻辣浓香，色泽红亮。',
+    category: 'bar-snacks',
+    isFeatured: true
+  },
+  // 凉菜 -> 开胃凉菜
   {
     id: '9',
     name: '酸梅汤',
     price: 15,
     image: 'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?auto=format&fit=crop&q=80&w=600',
     description: '古法熬制，冰镇口感，生津止渴，解辣必备。',
-    category: 'appetizers'
+    category: 'appetizers',
+    isFeatured: true
   },
   {
     id: '10',
@@ -221,7 +271,8 @@ export const DISHES: Dish[] = [
     price: 22,
     image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&q=80&w=600',
     description: '粒粒分明，蛋香浓郁，火候十足。',
-    category: 'staple'
+    category: 'staple',
+    isFeatured: true
   },
   {
     id: '12',
@@ -238,7 +289,8 @@ export const DISHES: Dish[] = [
     price: 18,
     image: 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&q=80&w=600',
     description: '新鲜西瓜现榨，清甜解渴。',
-    category: 'drinks'
+    category: 'drinks',
+    isFeatured: true
   },
   {
     id: '14',
@@ -247,5 +299,114 @@ export const DISHES: Dish[] = [
     image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&q=80&w=600',
     description: '酸甜适口，冰爽怡人。',
     category: 'drinks'
+  },
+  // 更多火锅类菜品用于精选推荐 3x2 网格
+  {
+    id: 'h1',
+    name: '捞派毛肚',
+    price: 80,
+    image: 'https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&q=80&w=1000',
+    description: '推荐麻辣锅，口感爽脆。',
+    category: 'northeast',
+    isFeatured: true
+  },
+  {
+    id: 'h2',
+    name: '藤椒味千丝牛肉',
+    price: 52,
+    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=1000',
+    description: '牛肉新吃法，您可以试试。',
+    category: 'northeast',
+    isFeatured: true
+  },
+  {
+    id: 'h3',
+    name: '呼伦贝尔草原肥牛',
+    price: 68,
+    image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=1000',
+    description: '源自呼伦贝尔大草原的美味。',
+    category: 'northeast',
+    isFeatured: true
+  },
+  {
+    id: 'h4',
+    name: '火锅牛排',
+    price: 30,
+    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=1000',
+    description: '口感细嫩有嚼劲。',
+    category: 'northeast',
+    isFeatured: true
+  },
+  {
+    id: 'h5',
+    name: '内蒙古草原羔羊肉',
+    price: 29,
+    image: 'https://images.unsplash.com/photo-1512058560366-cd2427ff56f3?auto=format&fit=crop&q=80&w=1000',
+    description: '肉香味美，肥瘦适中。',
+    category: 'northeast',
+    isFeatured: true
+  },
+  {
+    id: 'h6',
+    name: '捞派肥牛',
+    price: 67,
+    image: 'https://images.unsplash.com/photo-1580476262798-bddd9f4b7369?auto=format&fit=crop&q=80&w=1000',
+    description: '肉质鲜嫩，久煮不老。',
+    category: 'northeast',
+    isFeatured: true
+  },
+  {
+    id: 'h7',
+    name: '鲜嫩虾滑',
+    price: 48,
+    image: 'https://images.unsplash.com/photo-1559742811-822873691df8?auto=format&fit=crop&q=80&w=1000',
+    description: '纯手工打制，Q弹爽滑。',
+    category: 'northeast',
+    isFeatured: true
+  },
+  {
+    id: 'h8',
+    name: '脆爽黄喉',
+    price: 35,
+    image: 'https://images.unsplash.com/photo-1514516345957-556ca7d90a29?auto=format&fit=crop&q=80&w=1000',
+    description: '口感极佳，火锅必点。',
+    category: 'northeast',
+    isFeatured: true
+  },
+  {
+    id: 'h9',
+    name: '精品鸭肠',
+    price: 28,
+    image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&q=80&w=1000',
+    description: '七上八下，脆嫩爽口。',
+    category: 'northeast',
+    isFeatured: true
+  },
+  {
+    id: 'h10',
+    name: '手打牛肉丸',
+    price: 32,
+    image: 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&q=80&w=1000',
+    description: '爆汁口感，劲道十足。',
+    category: 'northeast',
+    isFeatured: true
+  },
+  {
+    id: 'h11',
+    name: '鲜切羊肉',
+    price: 58,
+    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=1000',
+    description: '现切现卖，新鲜看得见。',
+    category: 'northeast',
+    isFeatured: true
+  },
+  {
+    id: 'h12',
+    name: '深海鱼片',
+    price: 42,
+    image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&q=80&w=1000',
+    description: '肉质洁白，入口即化。',
+    category: 'northeast',
+    isFeatured: true
   }
 ];

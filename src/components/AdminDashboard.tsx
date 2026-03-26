@@ -15,7 +15,8 @@ import {
   LogOut,
   Image as ImageIcon,
   Video,
-  Bell
+  Bell,
+  HelpCircle
 } from 'lucide-react';
 import { 
   collection, 
@@ -30,8 +31,9 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { Settings, Category, Dish, Order, OrderItem } from '../types';
+import { Settings, Category, Dish, Order, OrderItem, CATEGORIES as INITIAL_CATEGORIES, DISHES as INITIAL_DISHES } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
+import { writeBatch, getDocs, getDoc } from 'firebase/firestore';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -39,6 +41,7 @@ interface AdminDashboardProps {
 
 export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'site' | 'dishes' | 'beauty' | 'orders'>('site');
+  const [isSyncing, setIsSyncing] = useState(false);
   const [settings, setSettings] = useState<Settings>({
     siteName: '巫山烤鱼',
     siteDescription: '地道风味，匠心烤制',
@@ -117,6 +120,41 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const handleDeleteCategory = async (id: string) => {
     if (confirm('确定要删除这个分类吗？删除分类可能会导致该分类下的菜品无法显示。')) {
       await deleteDoc(doc(db, 'categories', id));
+    }
+  };
+
+  const handleSyncInitialData = async () => {
+    if (!confirm('这将导入预设的分类和菜品到数据库。如果数据库已有数据，将不会重复导入。是否继续？')) return;
+    
+    setIsSyncing(true);
+    try {
+      const categoriesSnap = await getDocs(collection(db, 'categories'));
+      const dishesSnap = await getDocs(collection(db, 'dishes'));
+
+      if (categoriesSnap.empty) {
+        const batch = writeBatch(db);
+        INITIAL_CATEGORIES.forEach((cat, index) => {
+          const catRef = doc(db, 'categories', cat.id);
+          batch.set(catRef, { ...cat, order: index });
+        });
+        await batch.commit();
+      }
+
+      if (dishesSnap.empty) {
+        const batch = writeBatch(db);
+        INITIAL_DISHES.forEach((dish) => {
+          const dishRef = doc(db, 'dishes', dish.id);
+          batch.set(dishRef, dish);
+        });
+        await batch.commit();
+      }
+
+      alert('数据同步成功！');
+    } catch (error) {
+      console.error('Sync failed:', error);
+      alert('同步失败，请检查网络或权限。');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -226,6 +264,20 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none h-32"
                   />
                 </div>
+                <div className="pt-6 border-t border-gray-100">
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-sm font-bold text-gray-800">数据初始化</h3>
+                    <p className="text-xs text-gray-500">如果您的后台没有看到菜品，可以点击下方按钮从预设模板导入。</p>
+                    <button 
+                      onClick={handleSyncInitialData}
+                      disabled={isSyncing}
+                      className="mt-2 w-fit bg-gray-100 text-gray-700 px-6 py-2 rounded-xl text-sm font-bold hover:bg-gray-200 transition-all disabled:opacity-50"
+                    >
+                      {isSyncing ? '同步中...' : '同步预设菜品数据'}
+                    </button>
+                  </div>
+                </div>
+
                 <button 
                   onClick={handleSaveSettings}
                   className="bg-orange-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all flex items-center gap-2"
@@ -263,8 +315,17 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {categories.map(cat => (
-                    <div key={cat.id} className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center justify-between group">
-                      <div className="flex items-center gap-3">
+                    <div key={cat.id} className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center justify-between group hover:border-orange-200 transition-all">
+                      <div 
+                        onClick={() => {
+                          const element = document.getElementById(`dish-category-${cat.id}`);
+                          if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }}
+                        className="flex items-center gap-3 cursor-pointer hover:opacity-70 transition-all flex-1"
+                        title="点击跳转到该分类菜品"
+                      >
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white ${cat.iconBg || 'bg-orange-500'}`}>
                           <ChefHat size={20} />
                         </div>
@@ -274,20 +335,44 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         </div>
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                        <button onClick={() => setIsEditingCategory(cat)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit size={14} /></button>
-                        <button onClick={() => handleDeleteCategory(cat.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={14} /></button>
+                        <button onClick={(e) => { e.stopPropagation(); setIsEditingCategory(cat); }} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="编辑分类"><Edit size={14} /></button>
+                        <button onClick={(e) => { e.stopPropagation(); handleDeleteCategory(cat.id); }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="删除分类"><Trash2 size={14} /></button>
                       </div>
                     </div>
                   ))}
+
+                  {/* Uncategorized Shortcut */}
+                  {dishes.filter(d => !categories.find(c => c.id === d.category)).length > 0 && (
+                    <div 
+                      onClick={() => {
+                        const element = document.getElementById('dish-category-uncategorized');
+                        if (element) {
+                          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                      }}
+                      className="bg-gray-50 p-4 rounded-2xl border border-dashed border-gray-300 flex items-center gap-3 cursor-pointer hover:bg-gray-100 transition-all group"
+                      title="点击跳转到未分类菜品"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-gray-400 flex items-center justify-center text-white">
+                        <HelpCircle size={20} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-600 text-sm">未分类</h3>
+                        <p className="text-xs text-gray-400">
+                          {dishes.filter(d => !categories.find(c => c.id === d.category)).length} 个菜品
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </section>
 
               {/* Dish Management */}
-              <section className="space-y-6">
+              <section className="space-y-10">
                 <header className="flex justify-between items-center">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-800">菜品管理</h2>
-                    <p className="text-gray-500">管理具体菜品内容</p>
+                    <p className="text-gray-500">按分类管理具体菜品内容</p>
                   </div>
                   <button 
                     onClick={() => setIsEditingDish({ id: '', name: '', price: 0, image: '', description: '', category: categories[0]?.id || '' })}
@@ -298,42 +383,110 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                   </button>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {dishes.map(dish => (
-                    <div key={dish.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 group">
-                      <div className="relative h-48">
-                        <img src={dish.image} alt={dish.name} className="w-full h-full object-cover" />
-                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                          <button 
-                            onClick={() => setIsEditingDish(dish)}
-                            className="p-2 bg-white rounded-full text-blue-600 shadow-lg hover:scale-110 transition-all"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteDish(dish.id)}
-                            className="p-2 bg-white rounded-full text-red-600 shadow-lg hover:scale-110 transition-all"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                        <div className="absolute bottom-4 left-4 flex gap-2">
-                          <span className="bg-black/50 backdrop-blur-md text-white text-xs px-3 py-1 rounded-full">
-                            {categories.find(c => c.id === dish.category)?.name || '未分类'}
+                <div className="space-y-12">
+                  {categories.map(cat => {
+                    const categoryDishes = dishes.filter(d => d.category === cat.id);
+                    if (categoryDishes.length === 0) return null;
+
+                    return (
+                      <div key={cat.id} id={`dish-category-${cat.id}`} className="space-y-6 scroll-mt-24">
+                        <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs ${cat.iconBg || 'bg-orange-500'}`}>
+                            <ChefHat size={16} />
+                          </div>
+                          <h3 className="text-xl font-bold text-gray-800">{cat.name}</h3>
+                          <span className="bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded-md font-medium">
+                            {categoryDishes.length} 个菜品
                           </span>
-                          {dish.isHero && <span className="bg-gold text-black text-[10px] font-bold px-2 py-1 rounded-full">招牌</span>}
-                          {dish.isFeatured && <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-full">推荐</span>}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {categoryDishes.map(dish => (
+                            <div key={dish.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 group">
+                              <div className="relative h-48">
+                                <img src={dish.image} alt={dish.name} className="w-full h-full object-cover" />
+                                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                  <button 
+                                    onClick={() => setIsEditingDish(dish)}
+                                    className="p-2 bg-white rounded-full text-blue-600 shadow-lg hover:scale-110 transition-all"
+                                  >
+                                    <Edit size={16} />
+                                  </button>
+                                  <button 
+                                    onClick={() => handleDeleteDish(dish.id)}
+                                    className="p-2 bg-white rounded-full text-red-600 shadow-lg hover:scale-110 transition-all"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
+                                <div className="absolute bottom-4 left-4 flex gap-2">
+                                  {dish.isHero && <span className="bg-gold text-black text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">招牌</span>}
+                                  {dish.isFeatured && <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">推荐</span>}
+                                </div>
+                              </div>
+                              <div className="p-6">
+                                <div className="flex justify-between items-start mb-2">
+                                  <h3 className="font-bold text-gray-800">{dish.name}</h3>
+                                  <span className="text-orange-500 font-bold">¥{dish.price}</span>
+                                </div>
+                                <p className="text-gray-500 text-sm line-clamp-2">{dish.description}</p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                      <div className="p-6">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-bold text-gray-800">{dish.name}</h3>
-                          <span className="text-orange-500 font-bold">¥{dish.price}</span>
+                    );
+                  })}
+
+                  {/* Uncategorized dishes */}
+                  {dishes.filter(d => !categories.find(c => c.id === d.category)).length > 0 && (
+                    <div id="dish-category-uncategorized" className="space-y-6 scroll-mt-24">
+                      <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
+                        <div className="w-8 h-8 rounded-lg bg-gray-400 flex items-center justify-center text-white text-xs">
+                          <HelpCircle size={16} />
                         </div>
-                        <p className="text-gray-500 text-sm line-clamp-2">{dish.description}</p>
+                        <h3 className="text-xl font-bold text-gray-800">未分类菜品</h3>
+                        <span className="bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded-md font-medium">
+                          {dishes.filter(d => !categories.find(c => c.id === d.category)).length} 个菜品
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {dishes.filter(d => !categories.find(c => c.id === d.category)).map(dish => (
+                          <div key={dish.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 group">
+                            <div className="relative h-48">
+                              <img src={dish.image} alt={dish.name} className="w-full h-full object-cover" />
+                              <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                <button 
+                                  onClick={() => setIsEditingDish(dish)}
+                                  className="p-2 bg-white rounded-full text-blue-600 shadow-lg hover:scale-110 transition-all"
+                                >
+                                  <Edit size={16} />
+                                </button>
+                                <button 
+                                  onClick={() => handleDeleteDish(dish.id)}
+                                  className="p-2 bg-white rounded-full text-red-600 shadow-lg hover:scale-110 transition-all"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                              <div className="absolute bottom-4 left-4 flex gap-2">
+                                {dish.isHero && <span className="bg-gold text-black text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">招牌</span>}
+                                {dish.isFeatured && <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">推荐</span>}
+                              </div>
+                            </div>
+                            <div className="p-6">
+                              <div className="flex justify-between items-start mb-2">
+                                <h3 className="font-bold text-gray-800">{dish.name}</h3>
+                                <span className="text-orange-500 font-bold">¥{dish.price}</span>
+                              </div>
+                              <p className="text-gray-500 text-sm line-clamp-2">{dish.description}</p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
               </section>
             </motion.div>
