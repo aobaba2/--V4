@@ -55,6 +55,61 @@ import CyberLanding from './components/CyberLanding';
 
 // --- Components ---
 
+const ScaleWrapper = ({ children }: { children: React.ReactNode }) => {
+  const [scale, setScale] = useState(1);
+  const baseWidth = 1280;
+  const baseHeight = 800;
+
+  useEffect(() => {
+    const handleResize = () => {
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      const scaleX = windowWidth / baseWidth;
+      const scaleY = windowHeight / baseHeight;
+      // Use the smaller scale to ensure the entire content fits
+      const newScale = Math.min(scaleX, scaleY);
+      setScale(newScale);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    
+    const timer = setTimeout(handleResize, 100);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+      clearTimeout(timer);
+    };
+  }, []);
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black overflow-hidden touch-none">
+      <div 
+        style={{ 
+          width: baseWidth * scale, 
+          height: baseHeight * scale,
+          flexShrink: 0
+        }}
+        className="relative overflow-hidden shadow-2xl bg-[#050505]"
+      >
+        <div 
+          style={{ 
+            width: baseWidth, 
+            height: baseHeight, 
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+          }}
+          className="absolute inset-0"
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const VideoModal = ({ videoUrl, onClose }: { videoUrl: string; onClose: () => void }) => {
   return (
     <motion.div 
@@ -982,6 +1037,14 @@ export default function App() {
 
         {/* Right: Actions */}
         <div className="flex items-center justify-end gap-8">
+          <button 
+            onClick={() => setShowLanding(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-gold/10 hover:bg-gold/20 border border-gold/30 rounded-2xl text-gold transition-all active:scale-95 group"
+          >
+            <ChefHat size={18} className="group-hover:rotate-12 transition-transform" />
+            <span className="text-sm tracking-[0.2em] font-serif">返回封面</span>
+          </button>
+
           {user?.role === 'admin' && (
             <button 
               onClick={() => setIsAdminView(true)}
@@ -1032,7 +1095,7 @@ export default function App() {
             dragElastic={0.2}
             onDragEnd={(e, { offset, velocity }) => {
               const swipe = offset.x;
-              const threshold = 50;
+              const threshold = 30; // Reduced threshold for easier swiping on tablets
               if (swipe < -threshold) {
                 paginate(1);
               } else if (swipe > threshold) {
