@@ -48,8 +48,10 @@ import {
 } from 'firebase/firestore';
 import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
 import { db, auth } from './firebase';
+import { formatPrice } from './utils';
 import { CATEGORIES as INITIAL_CATEGORIES, DISHES as INITIAL_DISHES, Dish, Category, Settings, UserProfile } from './types';
 import AdminDashboard from './components/AdminDashboard';
+import CyberLanding from './components/CyberLanding';
 
 // --- Components ---
 
@@ -127,8 +129,8 @@ const DishDetailModal = ({ dish, onAdd, onPlayVideo, onClose, bgColor }: { dish:
               <span className="px-3 py-1 bg-gold/20 text-gold text-[10px] font-bold tracking-[0.2em] uppercase rounded-sm border border-gold/30">菜品详情</span>
               <div className="h-[1px] flex-1 bg-gold/20" />
             </div>
-            <h2 className="font-serif text-4xl text-white mb-4 tracking-wide">{dish.name}</h2>
-            <p className="text-gold font-serif text-3xl mb-8">¥{dish.price}</p>
+            <h2 className="font-serif text-3xl text-white mb-4 tracking-wide">{dish.name}</h2>
+            <p className="text-gold font-serif text-2xl mb-8">{formatPrice(dish.price)}</p>
             <div className="space-y-6">
               <div>
                 <h4 className="text-white/40 text-[10px] tracking-[0.3em] uppercase mb-2">特色描述</h4>
@@ -250,7 +252,7 @@ const DishCardHero = ({ dish, onAdd, onPlayVideo, onShowDetail, bgColor }: DishC
             "{dish.description}"
           </p>
           <div className="flex items-center gap-6">
-            <span className="text-gold font-serif text-3xl md:text-4xl">¥{dish.price}</span>
+            <span className="text-gold font-serif text-3xl md:text-4xl">{formatPrice(dish.price)}</span>
             {dish.videoUrl && (
               <button 
                 onClick={(e) => {
@@ -323,8 +325,8 @@ const DishCardFeatured = ({ dish, onAdd, onPlayVideo, onShowDetail, bgColor }: D
       </div>
       <div className="p-6">
         <div className="flex justify-between items-start mb-3">
-          <h4 className="font-serif text-2xl text-white group-hover:text-gold transition-colors">{dish.name}</h4>
-          <span className="text-gold font-serif text-xl">¥{dish.price}</span>
+          <h4 className="font-serif text-xl text-white group-hover:text-gold transition-colors">{dish.name}</h4>
+          <span className="text-gold font-serif text-lg">{formatPrice(dish.price)}</span>
         </div>
         <p className="text-white/40 text-xs font-light leading-relaxed line-clamp-2">{dish.description}</p>
       </div>
@@ -355,9 +357,9 @@ const LandscapeDishCardHero = ({ dish, onAdd, onPlayVideo, onShowDetail, bgColor
             <div className="h-[1px] w-16 bg-gold/40" />
             <span className="text-gold text-xs tracking-[0.4em] uppercase font-light">Signature Selection</span>
           </div>
-          <h3 className="font-serif text-6xl md:text-8xl text-white mb-10 leading-tight tracking-wide drop-shadow-2xl">{dish.name}</h3>
+          <h3 className="font-serif text-5xl md:text-7xl text-white mb-10 leading-tight tracking-wide drop-shadow-2xl">{dish.name}</h3>
           <div className="space-y-8 mb-16">
-            <p className="text-white/80 text-xl md:text-2xl font-light leading-relaxed italic border-l-4 border-gold/40 pl-8 max-w-xl">
+            <p className="text-white/80 text-lg md:text-xl font-light leading-relaxed italic border-l-4 border-gold/40 pl-8 max-w-xl">
               "{dish.description}"
             </p>
             <div className="flex items-center gap-6 text-white/30 text-sm tracking-[0.5em] uppercase font-serif">
@@ -369,7 +371,7 @@ const LandscapeDishCardHero = ({ dish, onAdd, onPlayVideo, onShowDetail, bgColor
           <div className="flex items-center gap-12">
             <div className="flex flex-col">
               <span className="text-gold/60 text-[10px] tracking-[0.5em] uppercase mb-1">Price</span>
-              <span className="text-gold font-serif text-6xl">¥{dish.price}</span>
+              <span className="text-gold font-serif text-5xl">{formatPrice(dish.price)}</span>
             </div>
             <button 
               onClick={(e) => {
@@ -483,8 +485,8 @@ const LandscapeDishCardGrid = ({ dishes, onAdd, onPlayVideo, onShowDetail, bgCol
           <div className="h-[40%] p-10 flex flex-col justify-between">
             <div>
               <div className="flex justify-between items-start mb-4">
-                <h4 className="font-serif text-4xl text-white group-hover:text-gold transition-colors tracking-wide">{dish.name}</h4>
-                <span className="text-gold font-serif text-4xl">¥{dish.price}</span>
+                <h4 className="font-serif text-3xl text-white group-hover:text-gold transition-colors tracking-wide">{dish.name}</h4>
+                <span className="text-gold font-serif text-3xl">{formatPrice(dish.price)}</span>
               </div>
               <p className="text-white/50 text-base font-light leading-relaxed line-clamp-2 italic border-l-2 border-gold/20 pl-4">
                 "{dish.description}"
@@ -536,7 +538,7 @@ const LandscapeDishCardCompactGrid = ({ dishes, onAdd, onPlayVideo, onShowDetail
           </div>
           <div className="h-[45%] p-4 flex flex-col justify-between">
             <div>
-              <h4 className="font-serif text-lg text-white group-hover:text-gold transition-colors truncate">{dish.name}</h4>
+              <h4 className="font-serif text-base text-white group-hover:text-gold transition-colors truncate">{dish.name}</h4>
               <div className="flex items-center justify-between mt-1">
                 <p className="text-white/40 text-[10px] font-light line-clamp-1 italic">"{dish.description}"</p>
                 <span className="text-white/20 text-[9px] border border-white/10 px-1 rounded">10-15秒</span>
@@ -544,7 +546,7 @@ const LandscapeDishCardCompactGrid = ({ dishes, onAdd, onPlayVideo, onShowDetail
             </div>
             <div className="flex items-center justify-between mt-2">
               <div className="flex flex-col">
-                <span className="text-gold font-serif text-xl">¥{dish.price}</span>
+                <span className="text-gold font-serif text-lg">{formatPrice(dish.price)}</span>
                 <span className="text-white/20 text-[8px] uppercase tracking-tighter">Per Portion</span>
               </div>
               <button 
@@ -582,6 +584,7 @@ const CATEGORY_ICONS: Record<string, any> = {
 
 export default function App() {
   const [isAdminView, setIsAdminView] = useState(false);
+  const [showLanding, setShowLanding] = useState(true);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [settings, setSettings] = useState<Settings>({
     siteName: '巫山烤鱼',
@@ -855,6 +858,16 @@ export default function App() {
     return <AdminDashboard onLogout={handleLogout} />;
   }
 
+  if (showLanding) {
+    return (
+      <CyberLanding 
+        onEnter={() => setShowLanding(false)} 
+        siteName={settings.siteName} 
+        siteDescription={settings.siteDescription} 
+      />
+    );
+  }
+
   const paginate = (newDirection: number) => {
     const newPage = currentPage + newDirection;
     if (newPage >= 0 && newPage < pages.length) {
@@ -872,56 +885,57 @@ export default function App() {
       `}</style>
 
       {/* Top Navigation Bar - Landscape Optimized */}
-      <header className="h-28 px-10 flex items-center justify-between glass-panel border-b border-gold/20 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-        <div className="flex items-center gap-12">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 border-2 border-gold rounded-full flex items-center justify-center text-gold font-serif text-3xl shadow-[0_0_20px_rgba(197,160,89,0.4)] bg-black/40">
-              巫
-            </div>
-            <div className="flex flex-col">
-              <h1 className="font-serif text-3xl tracking-[0.3em] text-gold uppercase drop-shadow-lg">{settings.siteName}</h1>
-              <span className="text-[10px] tracking-[0.5em] text-white/50 uppercase font-light">{settings.siteDescription}</span>
-            </div>
+      <header className="h-28 px-10 grid grid-cols-[1fr_auto_1fr] items-center glass-panel border-b border-gold/20 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+        {/* Left: Logo */}
+        <div 
+          onClick={() => setShowLanding(true)}
+          className="flex items-center gap-4 cursor-pointer group"
+        >
+          <div className="w-14 h-14 border-2 border-gold rounded-full flex items-center justify-center text-gold font-serif text-3xl shadow-[0_0_20px_rgba(197,160,89,0.4)] bg-black/40 group-hover:scale-110 transition-transform">
+            巫
           </div>
-          
-          <div className="h-12 w-[1px] bg-white/10 mx-2" />
-
-          {/* Horizontal Category List */}
-          <nav className="flex items-center gap-4 overflow-x-auto no-scrollbar max-w-3xl py-2">
-            {categories.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`group relative px-8 py-3 rounded-xl text-base tracking-[0.2em] transition-all duration-500 whitespace-nowrap overflow-hidden ${
-                  activeCategory === cat.id 
-                  ? 'text-black font-bold' 
-                  : 'text-white/70 hover:text-white'
-                }`}
-              >
-                {/* Background Layer */}
-                <div className={`absolute inset-0 transition-transform duration-500 ${
-                  activeCategory === cat.id ? 'translate-y-0' : 'translate-y-full'
-                } bg-gradient-to-br from-gold via-gold/90 to-gold/80`} />
-                
-                {/* Hover Layer */}
-                <div className={`absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                
-                {/* Content */}
-                <span className="relative z-10 flex items-center gap-2">
-                  {cat.id === 'all' && <Star size={16} className={activeCategory === 'all' ? 'text-black' : 'text-gold'} />}
-                  {cat.name}
-                </span>
-
-                {/* Bottom Border for non-active */}
-                {activeCategory !== cat.id && (
-                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gold/30 scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
-                )}
-              </button>
-            ))}
-          </nav>
+          <div className="flex flex-col">
+            <h1 className="font-serif text-2xl md:text-3xl tracking-[0.3em] text-gold uppercase drop-shadow-lg group-hover:text-white transition-colors">{settings.siteName}</h1>
+            <span className="text-[10px] tracking-[0.5em] text-white/50 uppercase font-light">{settings.siteDescription}</span>
+          </div>
         </div>
+        
+        {/* Center: Horizontal Category List */}
+        <nav className="flex items-center justify-center gap-4 overflow-x-auto no-scrollbar max-w-4xl py-2 px-4">
+          {categories.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={`group relative px-8 py-3 rounded-xl text-base tracking-[0.2em] transition-all duration-500 whitespace-nowrap overflow-hidden flex items-center justify-center ${
+                activeCategory === cat.id 
+                ? 'text-black font-bold' 
+                : 'text-white/70 hover:text-white'
+              }`}
+            >
+              {/* Background Layer */}
+              <div className={`absolute inset-0 transition-transform duration-500 ${
+                activeCategory === cat.id ? 'translate-y-0' : 'translate-y-full'
+              } bg-gradient-to-br from-gold via-gold/90 to-gold/80`} />
+              
+              {/* Hover Layer */}
+              <div className={`absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+              
+              {/* Content */}
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                {cat.id === 'all' && <Star size={16} className={activeCategory === 'all' ? 'text-black' : 'text-gold'} />}
+                <span className="font-serif">{cat.name}</span>
+              </span>
 
-        <div className="flex items-center gap-8">
+              {/* Bottom Border for non-active */}
+              {activeCategory !== cat.id && (
+                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gold/30 scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+              )}
+            </button>
+          ))}
+        </nav>
+
+        {/* Right: Actions */}
+        <div className="flex items-center justify-end gap-8">
           {user?.role === 'admin' && (
             <button 
               onClick={() => setIsAdminView(true)}
@@ -967,6 +981,18 @@ export default function App() {
           <motion.div
             key={`${activeCategory}-${currentPage}`}
             custom={direction}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={(e, { offset, velocity }) => {
+              const swipe = offset.x;
+              const threshold = 50;
+              if (swipe < -threshold) {
+                paginate(1);
+              } else if (swipe > threshold) {
+                paginate(-1);
+              }
+            }}
             initial={{ 
               opacity: 0, 
               x: direction > 0 ? 300 : -300,
@@ -991,7 +1017,7 @@ export default function App() {
               stiffness: 150,
               mass: 1
             }}
-            className="absolute inset-0 preserve-3d"
+            className="absolute inset-0 preserve-3d cursor-grab active:cursor-grabbing"
           >
             {pages[currentPage]?.type === 'cover' && (
               <CategoryCover category={pages[currentPage].data} bgColor={currentBgColor} />
@@ -1044,14 +1070,14 @@ export default function App() {
           </button>
         )}
 
-        {/* Back to Start Button (Bottom Left) */}
+        {/* Back to Start Button (Top Right) */}
         {currentPage > 0 && (
           <button 
             onClick={() => {
               setDirection(-1);
               setCurrentPage(0);
             }}
-            className="absolute bottom-8 left-8 flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 rounded-full text-xs tracking-widest text-white/60 transition-all z-40 border border-white/5 backdrop-blur-sm"
+            className="absolute top-8 right-8 flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 rounded-full text-xs tracking-widest text-white/60 transition-all z-50 border border-white/5 backdrop-blur-sm"
           >
             <X size={16} className="rotate-45" />
             <span>返回封面</span>
@@ -1159,7 +1185,7 @@ export default function App() {
                       <img src={item.dish.image} className="w-16 h-16 object-cover rounded-sm" referrerPolicy="no-referrer" />
                       <div className="flex-1">
                         <h4 className="font-serif">{item.dish.name}</h4>
-                        <p className="text-gold">¥{item.dish.price}</p>
+                        <p className="text-gold">{formatPrice(item.dish.price)}</p>
                       </div>
                       <div className="flex items-center gap-3">
                         <button onClick={() => removeFromCart(item.dish.id)} className="w-6 h-6 rounded-full border border-white/20 flex items-center justify-center hover:border-gold">
@@ -1178,7 +1204,7 @@ export default function App() {
               <div className="p-8 border-t border-white/5 space-y-6">
                 <div className="flex justify-between items-baseline">
                   <span className="text-white/40 tracking-widest">合计金额</span>
-                  <span className="text-3xl font-serif text-gold">¥{totalAmount}</span>
+                  <span className="text-3xl font-serif text-gold">{formatPrice(totalAmount)}</span>
                 </div>
                 <button 
                   onClick={confirmOrder}

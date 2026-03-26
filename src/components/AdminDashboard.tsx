@@ -31,6 +31,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
+import { formatPrice } from '../utils';
 import { Settings, Category, Dish, Order, OrderItem, CATEGORIES as INITIAL_CATEGORIES, DISHES as INITIAL_DISHES } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { writeBatch, getDocs, getDoc } from 'firebase/firestore';
@@ -159,7 +160,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 overflow-hidden text-gray-900">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-6 border-b border-gray-200">
@@ -427,7 +428,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                               <div className="p-6">
                                 <div className="flex justify-between items-start mb-2">
                                   <h3 className="font-bold text-gray-800">{dish.name}</h3>
-                                  <span className="text-orange-500 font-bold">¥{dish.price}</span>
+                                  <span className="text-orange-500 font-bold">{formatPrice(dish.price)}</span>
                                 </div>
                                 <p className="text-gray-500 text-sm line-clamp-2">{dish.description}</p>
                               </div>
@@ -478,7 +479,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                             <div className="p-6">
                               <div className="flex justify-between items-start mb-2">
                                 <h3 className="font-bold text-gray-800">{dish.name}</h3>
-                                <span className="text-orange-500 font-bold">¥{dish.price}</span>
+                                <span className="text-orange-500 font-bold">{formatPrice(dish.price)}</span>
                               </div>
                               <p className="text-gray-500 text-sm line-clamp-2">{dish.description}</p>
                             </div>
@@ -609,7 +610,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-gray-400">总计</p>
-                        <p className="text-xl font-bold text-orange-500">¥{order.total}</p>
+                        <p className="text-xl font-bold text-orange-500">{formatPrice(order.total)}</p>
                       </div>
                     </div>
 
@@ -617,7 +618,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                       {order.items.map((item, idx) => (
                         <div key={idx} className="flex justify-between items-center text-sm">
                           <span className="text-gray-600">{item.name} x {item.quantity}</span>
-                          <span className="text-gray-400">¥{item.price * item.quantity}</span>
+                          <span className="text-gray-400">{formatPrice(item.price * item.quantity)}</span>
                         </div>
                       ))}
                     </div>
@@ -692,13 +693,14 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">价格 (¥)</label>
+                    <label className="text-sm font-medium text-gray-700">价格 (₩)</label>
                     <input 
                       type="number" 
                       value={isEditingDish.price}
                       onChange={(e) => setIsEditingDish({ ...isEditingDish, price: Number(e.target.value) })}
                       className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none"
                     />
+                    <p className="text-xs text-orange-500 font-medium">预览: {formatPrice(isEditingDish.price)}</p>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">所属分类</label>
