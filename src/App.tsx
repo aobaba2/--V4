@@ -583,6 +583,45 @@ const CATEGORY_ICONS: Record<string, any> = {
 };
 
 export default function App() {
+  // Scale Wrapper Component to maintain aspect ratio across devices
+  const ScaleWrapper = ({ children }: { children: React.ReactNode }) => {
+    const [scale, setScale] = useState(1);
+    const baseWidth = 1280;
+    const baseHeight = 800;
+
+    useEffect(() => {
+      const handleResize = () => {
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        const scaleX = windowWidth / baseWidth;
+        const scaleY = windowHeight / baseHeight;
+        const newScale = Math.min(scaleX, scaleY);
+        setScale(newScale);
+      };
+
+      handleResize();
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black overflow-hidden">
+        <div 
+          style={{ 
+            width: baseWidth, 
+            height: baseHeight, 
+            transform: `scale(${scale})`,
+            transformOrigin: 'center center',
+            flexShrink: 0
+          }}
+          className="relative shadow-2xl"
+        >
+          {children}
+        </div>
+      </div>
+    );
+  };
+
   const [isAdminView, setIsAdminView] = useState(false);
   const [showLanding, setShowLanding] = useState(true);
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -855,16 +894,10 @@ export default function App() {
   const regularDishes = filteredDishes.filter(d => !d.isHero && !d.isFeatured);
 
   if (isAdminView && user?.role === 'admin') {
-    return <AdminDashboard onLogout={handleLogout} />;
-  }
-
-  if (showLanding) {
     return (
-      <CyberLanding 
-        onEnter={() => setShowLanding(false)} 
-        siteName={settings.siteName} 
-        siteDescription={settings.siteDescription} 
-      />
+      <ScaleWrapper>
+        <AdminDashboard onLogout={handleLogout} />
+      </ScaleWrapper>
     );
   }
 
@@ -876,16 +909,29 @@ export default function App() {
     }
   };
 
-  return (
-    <div className={`flex flex-col h-screen overflow-hidden ${currentBgColor} transition-colors duration-1000 selection:bg-gold/30 font-${settings.fontFamily}`}>
-      <style>{`
-        :root {
-          --primary-color: ${settings.primaryColor};
-        }
-      `}</style>
+  if (showLanding) {
+    return (
+      <ScaleWrapper>
+        <CyberLanding 
+          onEnter={() => setShowLanding(false)} 
+          siteName={settings.siteName} 
+          siteDescription={settings.siteDescription} 
+        />
+      </ScaleWrapper>
+    );
+  }
 
-      {/* Top Navigation Bar - Landscape Optimized */}
-      <header className="h-28 px-10 grid grid-cols-[1fr_auto_1fr] items-center glass-panel border-b border-gold/20 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+  return (
+    <ScaleWrapper>
+      <div className={`flex flex-col h-full w-full overflow-hidden ${currentBgColor} transition-colors duration-1000 selection:bg-gold/30 font-${settings.fontFamily}`}>
+        <style>{`
+          :root {
+            --primary-color: ${settings.primaryColor};
+          }
+        `}</style>
+
+        {/* Top Navigation Bar - Landscape Optimized */}
+        <header className="h-28 px-10 grid grid-cols-[1fr_auto_1fr] items-center glass-panel border-b border-gold/20 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
         {/* Left: Logo */}
         <div 
           onClick={() => setShowLanding(true)}
@@ -1269,7 +1315,7 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
-
-    </div>
+      </div>
+    </ScaleWrapper>
   );
 }

@@ -17,7 +17,7 @@ const CyberLanding: React.FC<CyberLandingProps> = ({ onEnter, siteName, siteDesc
   ];
 
   return (
-    <div className="relative h-screen w-screen bg-[#050505] text-white overflow-hidden font-sans p-6 md:p-8 flex flex-col gap-6">
+    <div className="relative h-full w-full bg-[#050505] text-white overflow-hidden font-sans p-6 md:p-8 flex flex-col gap-6">
       {/* Cyberpunk Background Image & Glow */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <img 
