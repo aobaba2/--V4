@@ -55,61 +55,6 @@ import CyberLanding from './components/CyberLanding';
 
 // --- Components ---
 
-const ScaleWrapper = ({ children }: { children: React.ReactNode }) => {
-  const [scale, setScale] = useState(1);
-  const baseWidth = 1280;
-  const baseHeight = 800;
-
-  useEffect(() => {
-    const handleResize = () => {
-      const windowWidth = window.innerWidth;
-      const windowHeight = window.innerHeight;
-      const scaleX = windowWidth / baseWidth;
-      const scaleY = windowHeight / baseHeight;
-      // Use the smaller scale to ensure the entire content fits
-      const newScale = Math.min(scaleX, scaleY);
-      setScale(newScale);
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
-    
-    const timer = setTimeout(handleResize, 100);
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
-      clearTimeout(timer);
-    };
-  }, []);
-
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black overflow-hidden touch-none">
-      <div 
-        style={{ 
-          width: baseWidth * scale, 
-          height: baseHeight * scale,
-          flexShrink: 0
-        }}
-        className="relative overflow-hidden shadow-2xl bg-[#050505]"
-      >
-        <div 
-          style={{ 
-            width: baseWidth, 
-            height: baseHeight, 
-            transform: `scale(${scale})`,
-            transformOrigin: 'top left',
-          }}
-          className="absolute inset-0"
-        >
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const VideoModal = ({ videoUrl, onClose }: { videoUrl: string; onClose: () => void }) => {
   return (
     <motion.div 
@@ -638,45 +583,6 @@ const CATEGORY_ICONS: Record<string, any> = {
 };
 
 export default function App() {
-  // Scale Wrapper Component to maintain aspect ratio across devices
-  const ScaleWrapper = ({ children }: { children: React.ReactNode }) => {
-    const [scale, setScale] = useState(1);
-    const baseWidth = 1280;
-    const baseHeight = 800;
-
-    useEffect(() => {
-      const handleResize = () => {
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
-        const scaleX = windowWidth / baseWidth;
-        const scaleY = windowHeight / baseHeight;
-        const newScale = Math.min(scaleX, scaleY);
-        setScale(newScale);
-      };
-
-      handleResize();
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black overflow-hidden">
-        <div 
-          style={{ 
-            width: baseWidth, 
-            height: baseHeight, 
-            transform: `scale(${scale})`,
-            transformOrigin: 'center center',
-            flexShrink: 0
-          }}
-          className="relative shadow-2xl"
-        >
-          {children}
-        </div>
-      </div>
-    );
-  };
-
   const [isAdminView, setIsAdminView] = useState(false);
   const [showLanding, setShowLanding] = useState(true);
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -949,10 +855,16 @@ export default function App() {
   const regularDishes = filteredDishes.filter(d => !d.isHero && !d.isFeatured);
 
   if (isAdminView && user?.role === 'admin') {
+    return <AdminDashboard onLogout={handleLogout} />;
+  }
+
+  if (showLanding) {
     return (
-      <ScaleWrapper>
-        <AdminDashboard onLogout={handleLogout} />
-      </ScaleWrapper>
+      <CyberLanding 
+        onEnter={() => setShowLanding(false)} 
+        siteName={settings.siteName} 
+        siteDescription={settings.siteDescription} 
+      />
     );
   }
 
@@ -964,29 +876,16 @@ export default function App() {
     }
   };
 
-  if (showLanding) {
-    return (
-      <ScaleWrapper>
-        <CyberLanding 
-          onEnter={() => setShowLanding(false)} 
-          siteName={settings.siteName} 
-          siteDescription={settings.siteDescription} 
-        />
-      </ScaleWrapper>
-    );
-  }
-
   return (
-    <ScaleWrapper>
-      <div className={`flex flex-col h-full w-full overflow-hidden ${currentBgColor} transition-colors duration-1000 selection:bg-gold/30 font-${settings.fontFamily}`}>
-        <style>{`
-          :root {
-            --primary-color: ${settings.primaryColor};
-          }
-        `}</style>
+    <div className={`flex flex-col h-screen overflow-hidden ${currentBgColor} transition-colors duration-1000 selection:bg-gold/30 font-${settings.fontFamily}`}>
+      <style>{`
+        :root {
+          --primary-color: ${settings.primaryColor};
+        }
+      `}</style>
 
-        {/* Top Navigation Bar - Landscape Optimized */}
-        <header className="h-28 px-10 grid grid-cols-[1fr_auto_1fr] items-center glass-panel border-b border-gold/20 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+      {/* Top Navigation Bar - Landscape Optimized */}
+      <header className="h-28 px-10 grid grid-cols-[1fr_auto_1fr] items-center glass-panel border-b border-gold/20 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
         {/* Left: Logo */}
         <div 
           onClick={() => setShowLanding(true)}
@@ -1037,14 +936,6 @@ export default function App() {
 
         {/* Right: Actions */}
         <div className="flex items-center justify-end gap-8">
-          <button 
-            onClick={() => setShowLanding(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-gold/10 hover:bg-gold/20 border border-gold/30 rounded-2xl text-gold transition-all active:scale-95 group"
-          >
-            <ChefHat size={18} className="group-hover:rotate-12 transition-transform" />
-            <span className="text-sm tracking-[0.2em] font-serif">返回封面</span>
-          </button>
-
           {user?.role === 'admin' && (
             <button 
               onClick={() => setIsAdminView(true)}
@@ -1095,7 +986,7 @@ export default function App() {
             dragElastic={0.2}
             onDragEnd={(e, { offset, velocity }) => {
               const swipe = offset.x;
-              const threshold = 30; // Reduced threshold for easier swiping on tablets
+              const threshold = 50;
               if (swipe < -threshold) {
                 paginate(1);
               } else if (swipe > threshold) {
@@ -1378,7 +1269,7 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
-      </div>
-    </ScaleWrapper>
+
+    </div>
   );
 }

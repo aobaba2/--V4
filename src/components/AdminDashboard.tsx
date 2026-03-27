@@ -160,7 +160,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   };
 
   return (
-    <div className="flex h-full bg-gray-50 overflow-hidden text-gray-900">
+    <div className="flex h-screen bg-gray-50 overflow-hidden text-gray-900">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-6 border-b border-gray-200">
