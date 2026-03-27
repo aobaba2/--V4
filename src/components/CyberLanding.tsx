@@ -17,7 +17,7 @@ const CyberLanding: React.FC<CyberLandingProps> = ({ onEnter, siteName, siteDesc
   ];
 
   return (
-    <div className="relative h-screen w-screen bg-[#050505] text-white overflow-hidden font-sans p-6 md:p-8 flex flex-col gap-6">
+    <div className="relative h-full w-full bg-[#050505] text-white overflow-hidden font-sans p-8 flex flex-col gap-6">
       {/* Cyberpunk Background Image & Glow */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <img 
@@ -68,7 +68,7 @@ const CyberLanding: React.FC<CyberLandingProps> = ({ onEnter, siteName, siteDesc
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-4xl md:text-6xl font-serif tracking-[0.15em] relative"
+            className="text-6xl font-serif tracking-[0.15em] relative"
           >
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-white to-pink-500 drop-shadow-[0_0_10px_rgba(34,211,238,0.4)]">
               {siteName}
@@ -89,7 +89,7 @@ const CyberLanding: React.FC<CyberLandingProps> = ({ onEnter, siteName, siteDesc
       <main className="relative z-20 flex-1 grid grid-cols-12 grid-rows-6 gap-4 overflow-hidden">
         
         {/* Left Column: Intro & Features */}
-        <div className="col-span-12 lg:col-span-4 row-span-6 flex flex-col gap-4">
+        <div className="col-span-4 row-span-6 flex flex-col gap-4">
           {/* About Box */}
           <motion.div 
             initial={{ scale: 0.95, opacity: 0 }}
@@ -139,7 +139,7 @@ const CyberLanding: React.FC<CyberLandingProps> = ({ onEnter, siteName, siteDesc
         </div>
 
         {/* Center/Right Column: Visuals & Contact */}
-        <div className="col-span-12 lg:col-span-8 row-span-6 grid grid-cols-8 grid-rows-6 gap-4">
+        <div className="col-span-8 row-span-6 grid grid-cols-8 grid-rows-6 gap-4">
           
           {/* Visual Showcase (Large) */}
           <motion.div 
@@ -207,11 +207,12 @@ const CyberLanding: React.FC<CyberLandingProps> = ({ onEnter, siteName, siteDesc
           >
             <button
               onClick={onEnter}
-              className="w-full h-full bg-orange-500 hover:bg-white text-black rounded-3xl flex flex-col items-center justify-center gap-2 transition-all group shadow-[0_0_30px_rgba(249,115,22,0.4)]"
+              className="w-full h-full bg-orange-500 hover:bg-white text-black rounded-3xl flex flex-col items-center justify-center gap-2 transition-all group shadow-[0_0_40px_rgba(249,115,22,0.6)] hover:shadow-[0_0_60px_rgba(249,115,22,0.8)] relative overflow-hidden"
             >
-              <span className="text-2xl font-serif tracking-[0.2em]">进入菜单</span>
-              <div className="flex items-center gap-1 text-[10px] uppercase tracking-[0.3em] font-bold opacity-60 group-hover:translate-x-2 transition-transform">
-                Start Order <ChevronRight size={14} />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer-effect" />
+              <span className="text-3xl font-serif tracking-[0.3em] font-bold">进入菜单</span>
+              <div className="flex items-center gap-1 text-xs uppercase tracking-[0.4em] font-bold opacity-70 group-hover:translate-x-2 transition-transform">
+                Start Order <ChevronRight size={16} />
               </div>
             </button>
           </motion.div>
@@ -232,6 +233,12 @@ const CyberLanding: React.FC<CyberLandingProps> = ({ onEnter, siteName, siteDesc
       </footer>
 
       <style>{`
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+        .group:hover .group-hover\:animate-shimmer-effect {
+          animation: shimmer 1.5s infinite;
+        }
         @keyframes scan {
           0% { transform: translateY(0); opacity: 0; }
           50% { opacity: 1; }

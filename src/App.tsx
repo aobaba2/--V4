@@ -163,6 +163,122 @@ const DishDetailModal = ({ dish, onAdd, onPlayVideo, onClose, bgColor }: { dish:
   );
 };
 
+const LoginModal = ({ onGoogleLogin, onSuperAdminLogin, onClose }: { onGoogleLogin: () => void; onSuperAdminLogin: (u: string, p: string) => void; onClose: () => void }) => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSuperAdminMode, setIsSuperAdminMode] = useState(false);
+
+  return (
+    <motion.div 
+      className="fixed inset-0 z-[150] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div 
+        className="relative w-full max-w-md bg-[#0a0a0a] border border-gold/20 rounded-3xl overflow-hidden shadow-2xl p-8 md:p-10"
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button 
+          onClick={onClose}
+          className="absolute top-6 right-6 text-white/40 hover:text-gold transition-colors p-2"
+        >
+          <X size={24} />
+        </button>
+
+        <div className="text-center mb-10">
+          <div className="w-16 h-16 bg-gold/10 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-gold/20">
+            <UserIcon size={32} className="text-gold" />
+          </div>
+          <h2 className="text-2xl font-serif text-white mb-2 tracking-widest">欢迎回来</h2>
+          <p className="text-white/40 text-sm tracking-widest uppercase">请选择登录方式</p>
+        </div>
+
+        <div className="space-y-6">
+          {!isSuperAdminMode ? (
+            <>
+              <button 
+                onClick={onGoogleLogin}
+                className="w-full py-4 bg-white text-black font-bold rounded-xl hover:bg-gold transition-all flex items-center justify-center gap-3 shadow-lg active:scale-95"
+              >
+                <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />
+                <span>使用 Google 账号登录</span>
+              </button>
+              
+              <div className="relative flex items-center py-4">
+                <div className="flex-grow border-t border-white/10"></div>
+                <span className="flex-shrink mx-4 text-white/20 text-[10px] tracking-[0.3em] uppercase">或者</span>
+                <div className="flex-grow border-t border-white/10"></div>
+              </div>
+
+              <button 
+                onClick={() => setIsSuperAdminMode(true)}
+                className="w-full py-4 bg-white/5 text-white/60 border border-white/10 rounded-xl hover:bg-white/10 hover:text-white transition-all text-sm tracking-widest uppercase"
+              >
+                超级管理员登录
+              </button>
+            </>
+          ) : (
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                onSuperAdminLogin(username, password);
+              }}
+              className="space-y-5"
+            >
+              <div className="space-y-2">
+                <label className="text-[10px] text-white/40 tracking-[0.3em] uppercase ml-1">用户名</label>
+                <input 
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="请输入管理员账号"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:bg-white/10 outline-none transition-all"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] text-white/40 tracking-[0.3em] uppercase ml-1">密码</label>
+                <input 
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="请输入管理员密码"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-gold/50 focus:bg-white/10 outline-none transition-all"
+                  required
+                />
+              </div>
+              <button 
+                type="submit"
+                className="w-full py-4 bg-gold text-black font-bold rounded-xl hover:bg-white transition-all shadow-lg active:scale-95 mt-4"
+              >
+                登录超级管理员
+              </button>
+              <button 
+                type="button"
+                onClick={() => setIsSuperAdminMode(false)}
+                className="w-full py-2 text-white/40 hover:text-white transition-all text-xs tracking-widest uppercase"
+              >
+                返回其他登录方式
+              </button>
+            </form>
+          )}
+        </div>
+
+        <div className="mt-10 pt-6 border-t border-white/5 text-center">
+          <p className="text-[10px] text-white/20 tracking-[0.2em] uppercase">
+            巫山烤鱼 · 匠心传承自 1998
+          </p>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 const CategoryCover = ({ category, bgColor }: { category: Category; bgColor: string }) => {
   return (
     <motion.div 
@@ -585,6 +701,8 @@ const CATEGORY_ICONS: Record<string, any> = {
 export default function App() {
   const [isAdminView, setIsAdminView] = useState(false);
   const [showLanding, setShowLanding] = useState(true);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [superAdmin, setSuperAdmin] = useState<{ username: string; role: 'admin' } | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [settings, setSettings] = useState<Settings>({
     siteName: '巫山烤鱼',
@@ -664,63 +782,63 @@ export default function App() {
     setCurrentPage(0);
   }, [activeCategory]);
 
+  const initData = async () => {
+    try {
+      const categoriesSnap = await getDocs(collection(db, 'categories'));
+      const dishesSnap = await getDocs(collection(db, 'dishes'));
+      const settingsSnap = await getDoc(doc(db, 'settings', 'global'));
+
+      if (categoriesSnap.empty) {
+        const batch = writeBatch(db);
+        INITIAL_CATEGORIES.forEach((cat, index) => {
+          const catRef = doc(db, 'categories', cat.id);
+          batch.set(catRef, { ...cat, order: index });
+        });
+        await batch.commit();
+        console.log('Categories initialized');
+      }
+
+      if (dishesSnap.empty) {
+        const batch = writeBatch(db);
+        INITIAL_DISHES.forEach((dish) => {
+          const dishRef = doc(db, 'dishes', dish.id);
+          batch.set(dishRef, dish);
+        });
+        await batch.commit();
+        console.log('Dishes initialized');
+      }
+
+      if (!settingsSnap.exists()) {
+        await setDoc(doc(db, 'settings', 'global'), {
+          siteName: '巫山烤鱼',
+          siteDescription: '地道风味，匠心烤制',
+          cartEnabled: true,
+          themeTemplate: 'default',
+          fontFamily: 'sans',
+          primaryColor: '#FF4B2B'
+        });
+        console.log('Settings initialized');
+      }
+    } catch (error) {
+      // Only log if it's not a permission error, or if we want to debug
+      if (error instanceof Error && !error.message.includes('permission')) {
+        console.error('Error initializing data:', error);
+      }
+    }
+  };
+
+  const testConnection = async () => {
+    try {
+      await getDocFromServer(doc(db, 'test', 'connection'));
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('client is offline')) {
+        console.error("Please check your Firebase configuration.");
+      }
+    }
+  };
+
   // Auth & Real-time Data
   useEffect(() => {
-    const initData = async () => {
-      try {
-        const categoriesSnap = await getDocs(collection(db, 'categories'));
-        const dishesSnap = await getDocs(collection(db, 'dishes'));
-        const settingsSnap = await getDoc(doc(db, 'settings', 'global'));
-
-        if (categoriesSnap.empty) {
-          const batch = writeBatch(db);
-          INITIAL_CATEGORIES.forEach((cat, index) => {
-            const catRef = doc(db, 'categories', cat.id);
-            batch.set(catRef, { ...cat, order: index });
-          });
-          await batch.commit();
-          console.log('Categories initialized');
-        }
-
-        if (dishesSnap.empty) {
-          const batch = writeBatch(db);
-          INITIAL_DISHES.forEach((dish) => {
-            const dishRef = doc(db, 'dishes', dish.id);
-            batch.set(dishRef, dish);
-          });
-          await batch.commit();
-          console.log('Dishes initialized');
-        }
-
-        if (!settingsSnap.exists()) {
-          await setDoc(doc(db, 'settings', 'global'), {
-            siteName: '巫山烤鱼',
-            siteDescription: '地道风味，匠心烤制',
-            cartEnabled: true,
-            themeTemplate: 'default',
-            fontFamily: 'sans',
-            primaryColor: '#FF4B2B'
-          });
-          console.log('Settings initialized');
-        }
-      } catch (error) {
-        // Only log if it's not a permission error, or if we want to debug
-        if (error instanceof Error && !error.message.includes('permission')) {
-          console.error('Error initializing data:', error);
-        }
-      }
-    };
-
-    const testConnection = async () => {
-      try {
-        await getDocFromServer(doc(db, 'test', 'connection'));
-      } catch (error) {
-        if (error instanceof Error && error.message.includes('client is offline')) {
-          console.error("Please check your Firebase configuration.");
-        }
-      }
-    };
-
     testConnection();
 
     const unsubAuth = onAuthStateChanged(auth, (firebaseUser) => {
@@ -736,6 +854,13 @@ export default function App() {
         if (isAdmin) {
           initData();
         }
+      } else if (superAdmin) {
+        setUser({
+          uid: 'super-admin',
+          email: 'admin@aoba.com',
+          role: 'admin'
+        });
+        initData();
       } else {
         setUser(null);
       }
@@ -763,15 +888,49 @@ export default function App() {
       unsubCategories();
       unsubDishes();
     };
-  }, []);
+  }, [superAdmin]);
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
     await signInWithPopup(auth, provider);
+    setShowLoginModal(false);
+  };
+
+  const handleSuperAdminLogin = async (username: string, password: string) => {
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setSuperAdmin({ username: data.username, role: 'admin' });
+        setUser({
+          uid: 'super-admin',
+          email: 'admin@aoba.com',
+          role: 'admin'
+        });
+        setShowLoginModal(false);
+        // Initialize data for admin
+        const categoriesSnap = await getDocs(collection(db, 'categories'));
+        const dishesSnap = await getDocs(collection(db, 'dishes'));
+        const settingsSnap = await getDoc(doc(db, 'settings', 'global'));
+        if (categoriesSnap.empty || dishesSnap.empty || !settingsSnap.exists()) {
+          // This will be handled by the useEffect if needed, but we can trigger it here too
+        }
+      } else {
+        alert('登录失败：' + (data.message || '用户名或密码错误'));
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('登录出错，请稍后再试');
+    }
   };
 
   const handleLogout = async () => {
     await signOut(auth);
+    setSuperAdmin(null);
     setIsAdminView(false);
   };
 
@@ -946,7 +1105,7 @@ export default function App() {
           )}
           {!user ? (
             <button 
-              onClick={handleLogin}
+              onClick={() => setShowLoginModal(true)}
               className="flex items-center gap-3 px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-sm tracking-[0.2em] text-white/70 transition-all active:scale-95"
             >
               <UserIcon size={18} />
@@ -954,10 +1113,16 @@ export default function App() {
             </button>
           ) : (
             <div className="flex items-center gap-4 px-5 py-3 bg-white/5 border border-white/10 rounded-2xl">
-              <img src={auth.currentUser?.photoURL || ''} className="w-8 h-8 rounded-full border-2 border-gold/30" alt="User" />
+              {superAdmin ? (
+                <div className="w-8 h-8 rounded-full border-2 border-gold/30 bg-gold/20 flex items-center justify-center">
+                  <ChefHat size={16} className="text-gold" />
+                </div>
+              ) : (
+                <img src={auth.currentUser?.photoURL || ''} className="w-8 h-8 rounded-full border-2 border-gold/30" alt="User" />
+              )}
               <div className="flex flex-col">
-                <span className="text-xs text-white/80 tracking-wider font-medium">{auth.currentUser?.displayName}</span>
-                <span className="text-[8px] text-gold/60 tracking-[0.2em] uppercase">Member</span>
+                <span className="text-xs text-white/80 tracking-wider font-medium">{superAdmin ? superAdmin.username : auth.currentUser?.displayName}</span>
+                <span className="text-[8px] text-gold/60 tracking-[0.2em] uppercase">{superAdmin ? 'Super Admin' : 'Member'}</span>
               </div>
             </div>
           )}
@@ -1267,6 +1432,13 @@ export default function App() {
               })}
             </div>
           </motion.div>
+        )}
+        {showLoginModal && (
+          <LoginModal 
+            onGoogleLogin={handleLogin}
+            onSuperAdminLogin={handleSuperAdminLogin}
+            onClose={() => setShowLoginModal(false)}
+          />
         )}
       </AnimatePresence>
 

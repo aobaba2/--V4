@@ -20,6 +20,15 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
+  app.post("/api/admin/login", (req, res) => {
+    const { username, password } = req.body;
+    if (username === "aoba2026" && password === "ylz@96321") {
+      res.json({ success: true, role: "admin", username: "aoba2026" });
+    } else {
+      res.status(401).json({ success: false, message: "Invalid credentials" });
+    }
+  });
+
   app.post("/api/orders", (req, res) => {
     const { tableNumber, items, totalAmount } = req.body;
     
