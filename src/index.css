@@ -5,7 +5,7 @@
   --font-sans: "Inter", "Noto Sans SC", sans-serif;
   --font-mono: "JetBrains Mono", "Roboto Mono", monospace;
   
-  --color-gold: var(--primary-color, #c5a059);
+  --color-gold: #e0b404;
   --color-deep-red: #210101;
   --color-deep-orange: #2b1401;
   --color-deep-purple: #1a0121;
@@ -37,5 +37,5 @@
 }
 
 .glass-panel {
-  @apply bg-black/40 backdrop-blur-md border border-white/10;
+  @apply bg-[#a20107]/90 backdrop-blur-md border border-white/10;
 }

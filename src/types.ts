@@ -63,7 +63,7 @@ export const CATEGORIES: Category[] = [
     coverImage: 'https://images.unsplash.com/photo-1514516345957-556ca7d90a29?auto=format&fit=crop&q=80&w=1000',
     description: '匠心烤制 巫山风味',
     icon: 'Star',
-    iconBg: 'bg-[#FF4B2B]' // Vibrant Red-Orange
+    iconBg: 'bg-gold' // Gold
   },
   {
     id: 'northeast',
@@ -72,7 +72,7 @@ export const CATEGORIES: Category[] = [
     coverImage: 'https://images.unsplash.com/photo-1580476262798-bddd9f4b7369?auto=format&fit=crop&q=80&w=1000',
     description: '地道东北味 份大实惠',
     icon: 'Mountain',
-    iconBg: 'bg-[#E52D27]' // Vibrant Red
+    iconBg: 'bg-gold' // Gold
   },
   {
     id: 'sichuan',
@@ -81,7 +81,7 @@ export const CATEGORIES: Category[] = [
     coverImage: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&q=80&w=1000',
     description: '麻辣鲜香 蜀味无穷',
     icon: 'FlameKindling',
-    iconBg: 'bg-[#FDC830]' // Vibrant Yellow
+    iconBg: 'bg-gold' // Gold
   },
   {
     id: 'bar-snacks',
@@ -90,7 +90,7 @@ export const CATEGORIES: Category[] = [
     coverImage: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=1000',
     description: '火辣过瘾 绝佳下酒',
     icon: 'Zap',
-    iconBg: 'bg-[#00B4DB]' // Vibrant Blue
+    iconBg: 'bg-gold' // Gold
   },
   {
     id: 'appetizers',
@@ -99,7 +99,7 @@ export const CATEGORIES: Category[] = [
     coverImage: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=1000',
     description: '清爽开胃 唤醒味蕾',
     icon: 'IceCream',
-    iconBg: 'bg-[#00D2FF]' // Vibrant Cyan/Blue
+    iconBg: 'bg-gold' // Gold
   },
   {
     id: 'staple',
@@ -108,7 +108,7 @@ export const CATEGORIES: Category[] = [
     coverImage: 'https://images.unsplash.com/photo-1534422298391-e4f8c170db06?auto=format&fit=crop&q=80&w=1000',
     description: '饱腹之选 营养美味',
     icon: 'Utensils',
-    iconBg: 'bg-[#FF9F43]' // Vibrant Orange
+    iconBg: 'bg-gold' // Gold
   },
   {
     id: 'drinks',
@@ -117,7 +117,7 @@ export const CATEGORIES: Category[] = [
     coverImage: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&q=80&w=1000',
     description: '冰爽解辣 畅饮无限',
     icon: 'GlassWater',
-    iconBg: 'bg-[#48DBFB]' // Vibrant Cyan
+    iconBg: 'bg-gold' // Gold
   }
 ];
 

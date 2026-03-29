@@ -30,7 +30,8 @@ import {
   GlassWater,
   LayoutDashboard,
   User as UserIcon,
-  ChefHat
+  ChefHat,
+  Image as ImageIcon
 } from 'lucide-react';
 import { 
   collection, 
@@ -65,7 +66,7 @@ const VideoModal = ({ videoUrl, onClose }: { videoUrl: string; onClose: () => vo
     >
       <button 
         onClick={onClose}
-        className="absolute top-8 right-8 text-white hover:text-gold transition-colors z-[120]"
+        className="absolute top-8 right-8 text-gold hover:text-white transition-colors z-[120]"
       >
         <X size={32} />
       </button>
@@ -105,12 +106,18 @@ const DishDetailModal = ({ dish, onAdd, onPlayVideo, onClose, bgColor }: { dish:
         </button>
 
         <div className="w-full md:w-1/2 h-64 md:h-auto relative">
-          <img 
-            src={dish.image} 
-            alt={dish.name}
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-          />
+          {dish.image ? (
+            <img 
+              src={dish.image} 
+              alt={dish.name}
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="w-full h-full bg-white/5 flex items-center justify-center">
+              <ImageIcon size={48} className="text-white/20" />
+            </div>
+          )}
           {dish.videoUrl && (
             <button 
               onClick={() => onPlayVideo(dish.videoUrl!)}
@@ -300,12 +307,16 @@ const CategoryCover = ({ category, bgColor }: { category: Category; bgColor: str
           ease: "linear" 
         }}
       >
-        <img 
-          src={category.coverImage} 
-          alt={category.name}
-          className="w-full h-full object-cover"
-          referrerPolicy="no-referrer"
-        />
+        {category.coverImage ? (
+          <img 
+            src={category.coverImage} 
+            alt={category.name}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div className="w-full h-full bg-black" />
+        )}
         <div className={`absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80`} />
       </motion.div>
 
@@ -348,12 +359,18 @@ const DishCardHero = ({ dish, onAdd, onPlayVideo, onShowDetail, bgColor }: DishC
       onClick={() => onShowDetail(dish)}
       className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden rounded-xl border border-gold/10 group cursor-pointer"
     >
-      <img 
-        src={dish.image} 
-        alt={dish.name}
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-110"
-        referrerPolicy="no-referrer"
-      />
+      {dish.image ? (
+        <img 
+          src={dish.image} 
+          alt={dish.name}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-110"
+          referrerPolicy="no-referrer"
+        />
+      ) : (
+        <div className="absolute inset-0 w-full h-full bg-white/5 flex items-center justify-center">
+          <ImageIcon size={64} className="text-white/10" />
+        </div>
+      )}
       <div className={`absolute inset-0 bg-gradient-to-t from-${bgGradientColor} via-${bgGradientColor}/20 to-transparent transition-colors duration-1000`} />
       
       <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
@@ -408,12 +425,18 @@ const DishCardFeatured = ({ dish, onAdd, onPlayVideo, onShowDetail, bgColor }: D
       className="flex flex-col bg-white/[0.03] border border-white/5 rounded-lg overflow-hidden group hover:border-gold/20 transition-all duration-500 cursor-pointer"
     >
       <div className="relative aspect-[4/3] overflow-hidden">
-        <img 
-          src={dish.image} 
-          alt={dish.name}
-          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-          referrerPolicy="no-referrer"
-        />
+        {dish.image ? (
+          <img 
+            src={dish.image} 
+            alt={dish.name}
+            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div className="w-full h-full bg-white/5 flex items-center justify-center">
+            <ImageIcon size={32} className="text-white/20" />
+          </div>
+        )}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-500 flex items-center justify-center">
           {dish.videoUrl && (
             <button 
@@ -522,15 +545,21 @@ const LandscapeDishCardHero = ({ dish, onAdd, onPlayVideo, onShowDetail, bgColor
 
       {/* Right: Large Image */}
       <div className="w-[55%] relative overflow-hidden">
-        <motion.img 
-          initial={{ scale: 1.2, filter: 'blur(10px)' }}
-          animate={{ scale: 1, filter: 'blur(0px)' }}
-          transition={{ duration: 2, ease: "easeOut" }}
-          src={dish.image} 
-          alt={dish.name}
-          className="w-full h-full object-cover"
-          referrerPolicy="no-referrer"
-        />
+        {dish.image ? (
+          <motion.img 
+            initial={{ scale: 1.2, filter: 'blur(10px)' }}
+            animate={{ scale: 1, filter: 'blur(0px)' }}
+            transition={{ duration: 2, ease: "easeOut" }}
+            src={dish.image} 
+            alt={dish.name}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div className="w-full h-full bg-white/5 flex items-center justify-center">
+            <ImageIcon size={128} className="text-white/10" />
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         
@@ -566,12 +595,18 @@ const LandscapeDishCardGrid = ({ dishes, onAdd, onPlayVideo, onShowDetail, bgCol
           className="relative group cursor-pointer overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] hover:border-gold/40 transition-all duration-700 shadow-2xl"
         >
           <div className="h-[60%] overflow-hidden relative">
-            <img 
-              src={dish.image} 
-              alt={dish.name}
-              className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110"
-              referrerPolicy="no-referrer"
-            />
+            {dish.image ? (
+              <img 
+                src={dish.image} 
+                alt={dish.name}
+                className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="w-full h-full bg-white/5 flex items-center justify-center">
+                <ImageIcon size={64} className="text-white/20" />
+              </div>
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-500 flex items-center justify-center">
               {dish.videoUrl && (
@@ -640,12 +675,18 @@ const LandscapeDishCardCompactGrid = ({ dishes, onAdd, onPlayVideo, onShowDetail
           className="relative group cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-white/[0.05] hover:border-gold/40 transition-all duration-500 shadow-xl flex flex-col"
         >
           <div className="h-[55%] overflow-hidden relative">
-            <img 
-              src={dish.image} 
-              alt={dish.name}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-              referrerPolicy="no-referrer"
-            />
+            {dish.image ? (
+              <img 
+                src={dish.image} 
+                alt={dish.name}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="w-full h-full bg-white/5 flex items-center justify-center">
+                <ImageIcon size={32} className="text-white/20" />
+              </div>
+            )}
             {/* Tag like in the image */}
             <div className="absolute top-2 left-2 bg-white/90 text-black px-2 py-0.5 rounded text-[10px] font-bold shadow-sm">
               椒麻入味
@@ -837,6 +878,21 @@ export default function App() {
     }
   };
 
+  const handleFirestoreError = (error: unknown, operationType: string, path: string | null) => {
+    const errInfo = {
+      error: error instanceof Error ? error.message : String(error),
+      authInfo: {
+        userId: auth.currentUser?.uid,
+        email: auth.currentUser?.email,
+        emailVerified: auth.currentUser?.emailVerified,
+        isAnonymous: auth.currentUser?.isAnonymous,
+      },
+      operationType,
+      path
+    };
+    console.error('Firestore Error: ', JSON.stringify(errInfo));
+  };
+
   // Auth & Real-time Data
   useEffect(() => {
     testConnection();
@@ -868,19 +924,19 @@ export default function App() {
 
     const unsubSettings = onSnapshot(doc(db, 'settings', 'global'), (doc) => {
       if (doc.exists()) setSettings(doc.data() as Settings);
-    });
+    }, (error) => handleFirestoreError(error, 'get', 'settings/global'));
 
     const unsubCategories = onSnapshot(query(collection(db, 'categories'), orderBy('order', 'asc')), (snapshot) => {
       if (!snapshot.empty) {
         setCategories(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Category)));
       }
-    });
+    }, (error) => handleFirestoreError(error, 'list', 'categories'));
 
     const unsubDishes = onSnapshot(collection(db, 'dishes'), (snapshot) => {
       if (!snapshot.empty) {
         setDishes(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Dish)));
       }
-    });
+    }, (error) => handleFirestoreError(error, 'list', 'dishes'));
 
     return () => {
       unsubAuth();
@@ -1050,7 +1106,7 @@ export default function App() {
           onClick={() => setShowLanding(true)}
           className="flex items-center gap-4 cursor-pointer group"
         >
-          <div className="w-14 h-14 border-2 border-gold rounded-full flex items-center justify-center text-gold font-serif text-3xl shadow-[0_0_20px_rgba(197,160,89,0.4)] bg-black/40 group-hover:scale-110 transition-transform">
+          <div className="w-14 h-14 border-2 border-gold rounded-full flex items-center justify-center text-gold font-serif text-3xl shadow-[0_0_20px_rgba(197,160,89,0.4)] bg-[#a20107]/60 group-hover:scale-110 transition-transform">
             巫
           </div>
           <div className="flex flex-col">
@@ -1065,16 +1121,16 @@ export default function App() {
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`group relative px-8 py-3 rounded-xl text-base tracking-[0.2em] transition-all duration-500 whitespace-nowrap overflow-hidden flex items-center justify-center ${
+              className={`group relative px-8 py-3 rounded-xl text-base tracking-[0.2em] transition-all duration-500 whitespace-nowrap overflow-hidden flex items-center justify-center border ${
                 activeCategory === cat.id 
-                ? 'text-black font-bold' 
-                : 'text-white/70 hover:text-white'
+                ? 'text-black font-bold border-gold' 
+                : 'text-gold border-gold/30 bg-gold/5 hover:bg-gold/10 hover:border-gold/50'
               }`}
             >
               {/* Background Layer */}
               <div className={`absolute inset-0 transition-transform duration-500 ${
                 activeCategory === cat.id ? 'translate-y-0' : 'translate-y-full'
-              } bg-gradient-to-br from-gold via-gold/90 to-gold/80`} />
+              } bg-gold`} />
               
               {/* Hover Layer */}
               <div className={`absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
@@ -1084,11 +1140,6 @@ export default function App() {
                 {cat.id === 'all' && <Star size={16} className={activeCategory === 'all' ? 'text-black' : 'text-gold'} />}
                 <span className="font-serif">{cat.name}</span>
               </span>
-
-              {/* Bottom Border for non-active */}
-              {activeCategory !== cat.id && (
-                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gold/30 scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
-              )}
             </button>
           ))}
         </nav>
@@ -1098,7 +1149,7 @@ export default function App() {
           {user?.role === 'admin' && (
             <button 
               onClick={() => setIsAdminView(true)}
-              className="p-4 text-white/50 hover:text-gold transition-all bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10"
+              className="p-4 text-gold/70 hover:text-gold transition-all bg-gold/5 hover:bg-gold/10 rounded-2xl border border-gold/20"
             >
               <LayoutDashboard size={24} />
             </button>
@@ -1106,7 +1157,7 @@ export default function App() {
           {!user ? (
             <button 
               onClick={() => setShowLoginModal(true)}
-              className="flex items-center gap-3 px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-sm tracking-[0.2em] text-white/70 transition-all active:scale-95"
+              className="flex items-center gap-3 px-8 py-3 bg-gold/5 hover:bg-gold/10 border border-gold/20 rounded-2xl text-sm tracking-[0.2em] text-gold transition-all active:scale-95"
             >
               <UserIcon size={18} />
               <span>登录</span>
@@ -1118,7 +1169,13 @@ export default function App() {
                   <ChefHat size={16} className="text-gold" />
                 </div>
               ) : (
-                <img src={auth.currentUser?.photoURL || ''} className="w-8 h-8 rounded-full border-2 border-gold/30" alt="User" />
+                auth.currentUser?.photoURL ? (
+                  <img src={auth.currentUser.photoURL} className="w-8 h-8 rounded-full border-2 border-gold/30" alt="User" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full border-2 border-gold/30 bg-white/10 flex items-center justify-center">
+                    <UserIcon size={16} className="text-white/50" />
+                  </div>
+                )
               )}
               <div className="flex flex-col">
                 <span className="text-xs text-white/80 tracking-wider font-medium">{superAdmin ? superAdmin.username : auth.currentUser?.displayName}</span>
@@ -1242,7 +1299,7 @@ export default function App() {
               setDirection(-1);
               setCurrentPage(0);
             }}
-            className="absolute top-8 right-8 flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 rounded-full text-xs tracking-widest text-white/60 transition-all z-50 border border-white/5 backdrop-blur-sm"
+            className="absolute top-8 right-8 flex items-center gap-2 px-6 py-3 bg-gold/5 hover:bg-gold/10 rounded-full text-xs tracking-widest text-gold transition-all z-50 border border-gold/20 backdrop-blur-sm"
           >
             <X size={16} className="rotate-45" />
             <span>返回封面</span>
@@ -1302,29 +1359,29 @@ export default function App() {
               onClick={() => setIsCartOpen(false)}
             />
             <motion.div 
-              className={`fixed inset-y-0 right-0 z-[70] w-full max-w-md ${currentBgColor} border-l border-white/10 flex flex-col transition-colors duration-1000`}
+              className="fixed inset-y-0 right-0 z-[70] w-full max-w-md bg-gray-100 border-l border-gray-200 flex flex-col transition-colors duration-1000 text-gray-900 shadow-2xl"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             >
-              <div className="p-8 border-b border-white/5 flex items-center justify-between">
-                <h2 className="text-2xl font-serif">我的点餐</h2>
-                <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-white/5 rounded-full">
+              <div className="p-8 border-b border-gray-200 flex items-center justify-between bg-white">
+                <h2 className="text-2xl font-serif text-gray-800">我的点餐</h2>
+                <button onClick={() => setIsCartOpen(false)} className="p-2 text-gold hover:bg-gold/10 rounded-full">
                   <X />
                 </button>
               </div>
               
               <div className="flex-1 overflow-y-auto p-8 space-y-6">
                 {/* Table Selection */}
-                <div className="mb-8 p-4 bg-gold/5 border border-gold/20 rounded-lg">
-                  <label className="block text-gold text-[10px] tracking-[0.3em] uppercase mb-3">选择桌号 Table Number</label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {["01", "02", "03", "05", "06", "08", "09", "10"].map(num => (
+                <div className="mb-8 p-6 bg-white border border-gray-200 rounded-2xl shadow-sm">
+                  <label className="block text-gray-500 text-[10px] tracking-[0.3em] uppercase mb-4 font-bold">选择桌号 Table Number</label>
+                  <div className="grid grid-cols-4 gap-3">
+                    {["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"].map(num => (
                       <button
                         key={num}
                         onClick={() => setTableNumber(num)}
-                        className={`py-2 rounded border transition-all text-sm font-serif ${tableNumber === num ? 'bg-gold text-black border-gold' : 'border-white/10 text-white/40 hover:border-gold/50'}`}
+                        className={`py-3 rounded-xl border transition-all text-xl font-serif font-bold ${tableNumber === num ? 'bg-gold text-black border-gold shadow-md scale-105' : 'border-gray-200 text-gray-400 hover:border-gold/50 hover:bg-gray-50'}`}
                       >
                         {num}
                       </button>
@@ -1335,51 +1392,59 @@ export default function App() {
                     placeholder="或输入桌号..."
                     value={tableNumber}
                     onChange={(e) => setTableNumber(e.target.value)}
-                    className="w-full mt-4 bg-transparent border-b border-white/10 py-2 text-white focus:border-gold outline-none transition-all text-sm"
+                    className="w-full mt-6 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 focus:border-gold outline-none transition-all text-sm"
                   />
                 </div>
 
                 {cart.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-white/20 space-y-4 py-12">
-                    <ShoppingCart size={48} />
-                    <p className="tracking-widest">尚未选择菜品</p>
+                  <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4 py-12">
+                    <ShoppingCart size={48} className="opacity-20" />
+                    <p className="tracking-widest font-serif">尚未选择菜品</p>
                   </div>
                 ) : (
-                  cart.map(item => (
-                    <div key={item.dish.id} className="flex gap-4 items-center">
-                      <img src={item.dish.image} className="w-16 h-16 object-cover rounded-sm" referrerPolicy="no-referrer" />
-                      <div className="flex-1">
-                        <h4 className="font-serif">{item.dish.name}</h4>
-                        <p className="text-gold">{formatPrice(item.dish.price)}</p>
+                  <div className="space-y-4">
+                    {cart.map(item => (
+                      <div key={item.dish.id} className="flex gap-4 items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                        {item.dish.image ? (
+                          <img src={item.dish.image} className="w-20 h-20 object-cover rounded-xl" referrerPolicy="no-referrer" />
+                        ) : (
+                          <div className="w-20 h-20 bg-gray-50 rounded-xl flex items-center justify-center">
+                            <ImageIcon size={24} className="text-gray-200" />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <h4 className="font-serif text-gray-800 text-lg">{item.dish.name}</h4>
+                          <p className="text-gold font-bold">{formatPrice(item.dish.price)}</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button onClick={() => removeFromCart(item.dish.id)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:border-gold text-gray-400 hover:text-gold transition-colors">
+                            <Minus size={14} />
+                          </button>
+                          <span className="w-4 text-center font-bold text-gray-800">{item.count}</span>
+                          <button onClick={() => addToCart(item.dish)} className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:border-gold text-gray-400 hover:text-gold transition-colors">
+                            <Plus size={14} />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <button onClick={() => removeFromCart(item.dish.id)} className="w-6 h-6 rounded-full border border-white/20 flex items-center justify-center hover:border-gold">
-                          <Minus size={14} />
-                        </button>
-                        <span className="w-4 text-center">{item.count}</span>
-                        <button onClick={() => addToCart(item.dish)} className="w-6 h-6 rounded-full border border-white/20 flex items-center justify-center hover:border-gold">
-                          <Plus size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  ))
+                    ))}
+                  </div>
                 )}
               </div>
               
-              <div className="p-8 border-t border-white/5 space-y-6">
+              <div className="p-8 border-t border-gray-200 space-y-6 bg-white">
                 <div className="flex justify-between items-baseline">
-                  <span className="text-white/40 tracking-widest">合计金额</span>
-                  <span className="text-3xl font-serif text-gold">{formatPrice(totalAmount)}</span>
+                  <span className="text-gray-400 tracking-widest uppercase text-xs font-bold">合计金额 Total</span>
+                  <span className="text-4xl font-serif text-gold drop-shadow-sm">{formatPrice(totalAmount)}</span>
                 </div>
                 <button 
                   onClick={confirmOrder}
                   disabled={cart.length === 0 || isOrdering}
-                  className="w-full py-4 bg-gold text-black font-bold tracking-[0.2em] hover:bg-white transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-5 bg-gold text-black font-bold tracking-[0.3em] rounded-2xl hover:bg-black hover:text-gold transition-all disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-xl shadow-gold/20"
                 >
                   {isOrdering ? (
-                    <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                    <div className="w-6 h-6 border-2 border-black/20 border-t-black rounded-full animate-spin" />
                   ) : (
-                    "确认下单"
+                    "确认下单 CONFIRM"
                   )}
                 </button>
               </div>
@@ -1417,12 +1482,12 @@ export default function App() {
                     className="flex flex-col items-center gap-3"
                   >
                     <motion.div 
-                      className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl ${cat.iconBg || 'bg-orange-500'} ${
+                      className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl bg-gold ${
                         activeCategory === cat.id ? 'ring-4 ring-gold/40' : ''
                       }`}
                       whileTap={{ scale: 0.9 }}
                     >
-                      {IconComponent && <IconComponent size={40} className="text-white" strokeWidth={2.5} />}
+                      {IconComponent && <IconComponent size={40} className="text-black" strokeWidth={2.5} />}
                     </motion.div>
                     <span className={`text-sm font-medium tracking-widest ${activeCategory === cat.id ? 'text-gold' : 'text-white/60'}`}>
                       {cat.name}

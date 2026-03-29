@@ -57,23 +57,38 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [isEditingDish, setIsEditingDish] = useState<Dish | null>(null);
   const [isEditingCategory, setIsEditingCategory] = useState<Category | null>(null);
 
+  const handleFirestoreError = (error: unknown, operationType: string, path: string | null) => {
+    const errInfo = {
+      error: error instanceof Error ? error.message : String(error),
+      authInfo: {
+        userId: auth.currentUser?.uid,
+        email: auth.currentUser?.email,
+        emailVerified: auth.currentUser?.emailVerified,
+        isAnonymous: auth.currentUser?.isAnonymous,
+      },
+      operationType,
+      path
+    };
+    console.error('Firestore Error: ', JSON.stringify(errInfo));
+  };
+
   // Real-time data fetching
   useEffect(() => {
     const unsubSettings = onSnapshot(doc(db, 'settings', 'global'), (doc) => {
       if (doc.exists()) setSettings(doc.data() as Settings);
-    });
+    }, (error) => handleFirestoreError(error, 'get', 'settings/global'));
 
     const unsubCategories = onSnapshot(query(collection(db, 'categories'), orderBy('order', 'asc')), (snapshot) => {
       setCategories(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Category)));
-    });
+    }, (error) => handleFirestoreError(error, 'list', 'categories'));
 
     const unsubDishes = onSnapshot(collection(db, 'dishes'), (snapshot) => {
       setDishes(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Dish)));
-    });
+    }, (error) => handleFirestoreError(error, 'list', 'dishes'));
 
     const unsubOrders = onSnapshot(query(collection(db, 'orders'), orderBy('createdAt', 'desc')), (snapshot) => {
       setOrders(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Order)));
-    });
+    }, (error) => handleFirestoreError(error, 'list', 'orders'));
 
     return () => {
       unsubSettings();
@@ -160,7 +175,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   };
 
   return (
-    <div className="flex h-full bg-gray-50 overflow-hidden text-gray-900">
+    <div className="flex h-screen bg-gray-50 overflow-hidden text-gray-900">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-6 border-b border-gray-200">
@@ -327,7 +342,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         className="flex items-center gap-3 cursor-pointer hover:opacity-70 transition-all flex-1"
                         title="点击跳转到该分类菜品"
                       >
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white ${cat.iconBg || 'bg-orange-500'}`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-black ${cat.iconBg || 'bg-gold'}`}>
                           <ChefHat size={20} />
                         </div>
                         <div>
@@ -392,7 +407,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     return (
                       <div key={cat.id} id={`dish-category-${cat.id}`} className="space-y-6 scroll-mt-24">
                         <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs ${cat.iconBg || 'bg-orange-500'}`}>
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-black text-xs ${cat.iconBg || 'bg-gold'}`}>
                             <ChefHat size={16} />
                           </div>
                           <h3 className="text-xl font-bold text-gray-800">{cat.name}</h3>
@@ -405,7 +420,13 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                           {categoryDishes.map(dish => (
                             <div key={dish.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 group">
                               <div className="relative h-48">
-                                <img src={dish.image} alt={dish.name} className="w-full h-full object-cover" />
+                                {dish.image ? (
+                                  <img src={dish.image} alt={dish.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                    <ImageIcon className="text-gray-300" size={48} />
+                                  </div>
+                                )}
                                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                   <button 
                                     onClick={() => setIsEditingDish(dish)}
@@ -456,7 +477,13 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         {dishes.filter(d => !categories.find(c => c.id === d.category)).map(dish => (
                           <div key={dish.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 group">
                             <div className="relative h-48">
-                              <img src={dish.image} alt={dish.name} className="w-full h-full object-cover" />
+                              {dish.image ? (
+                                <img src={dish.image} alt={dish.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                  <ImageIcon className="text-gray-300" size={48} />
+                                </div>
+                              )}
                               <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                 <button 
                                   onClick={() => setIsEditingDish(dish)}
